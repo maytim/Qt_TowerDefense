@@ -15,18 +15,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         game.cpp \
     gameobject.cpp \
-    tower.cpp \
     enemy.cpp \
-    waypoint.cpp \
-    menu.cpp \
-    image.cpp \
     button.cpp
 
 HEADERS  += game.h \
     gameobject.h \
-    tower.h \
     enemy.h \
     waypoint.h \
-    menu.h \
     image.h \
     button.h

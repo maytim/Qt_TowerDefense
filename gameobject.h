@@ -1,6 +1,28 @@
 /*
-    The GameObject class is used to store the QImage and QRect data that represents the object within the game.
-    All other objects within the game will build functionality off this framework.
+    @mainpage HW5
+    @author Tim Maytom (104016902)
+    @date 11/7/2014
+    @section DESCRIPTION
+
+    This is the beginning of my tower defense game. I have implemented the game's GUI
+    and started planning some of the game logic. The GUI is built off custom Images
+    and Button's that are derived from the GameObject class. The game behavior is controlled
+    by its state (MENU, INGAME, PAUSE, HELP). Each state  tells the game to paint a different
+    interface. For the MENU it shows the title, start button, help button, and quit button.
+    Clicking each of these buttons will take you to a new state or end the program. For
+    the interface in the game I created placeholder images for the wave and score counters
+    and labels for each of those counters. You can press the 'P' button while playing to
+    enter the PAUSE state. While in the PAUSE state the game freezes which allows you to
+    continue when you press resume or you can exit the game by pressing main menu. The
+    help button starts the HELP state. This will provide the user the game instructions.
+    The interface has a back button, main image, and navigation arrows. The back button
+    returns you to the main menu. The navigation arrows update the image displayed. The
+    images are placeholders for now but will eventually show the controls of the
+    game.
+
+    Note: the animation of the enemy in game is the beginnings of my waypoint system. I left
+    it in to indicate that the user is in the INGAME state and to show that when you pause
+    the game that the game is actually pausing.
 */
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
@@ -16,33 +38,61 @@ namespace CONSTANTS{
     
     //waypoint constants
     const int WAYPOINT_COUNT = 4;
-    const int WAYPOINTS[2*WAYPOINT_COUNT] = {1,1,200,1,200,200,1,200};
+    const int WAYPOINTS[2*WAYPOINT_COUNT] = {100,100,250,100,250,250,100,250};
     
-    //menu constants
-    const QString TITLE_PATH = "C:/Qt/Projects/GameProject/title2.png";
+    //GUI constants
+    const QString TITLE_PATH_1 = "C:/Qt/Projects/GameProject/tower.png";
+    const QString TITLE_PATH_2 = "C:/Qt/Projects/GameProject/defense.png";
     const QString START_PATH = "C:/Qt/Projects/GameProject/start.png";
     const QString START_H_PATH = "C:/Qt/Projects/GameProject/start_hover.png";
     const QString HELP_PATH = "C:/Qt/Projects/GameProject/help.png";
     const QString HELP_H_PATH = "C:/Qt/Projects/GameProject/help_hover.png";
+    const QString SCORE_PATH = "C:/Qt/Projects/GameProject/score.png";
+    const QString MAINMENU_PATH = "C:/Qt/Projects/GameProject/mainmenu.png";
+    const QString MAINMENU_H_PATH = "C:/Qt/Projects/GameProject/mainmenu_hover.png";
+    const QString QUIT_PATH = "C:/Qt/Projects/GameProject/quit.png";
+    const QString QUIT_H_PATH = "C:/Qt/Projects/GameProject/quit_hover.png";
+    const QString RESUME_PATH = "C:/Qt/Projects/GameProject/resume.png";
+    const QString RESUME_H_PATH = "C:/Qt/Projects/GameProject/resume_hover.png";
+    const QString RIGHT_PATH = "C:/Qt/Projects/GameProject/rightarrow.png";
+    const QString RIGHT_H_PATH = "C:/Qt/Projects/GameProject/rightarrow_hover.png";
+    const QString LEFT_PATH = "C:/Qt/Projects/GameProject/leftarrow.png";
+    const QString LEFT_H_PATH = "C:/Qt/Projects/GameProject/leftarrow_hover.png";
+    const QString BACK_PATH = "C:/Qt/Projects/GameProject/back.png";
+    const QString BACK_H_PATH = "C:/Qt/Projects/GameProject/back_hover.png";
+    const QString SCORE_TITLE_PATH = "C:/Qt/Projects/GameProject/score_title.png";
+    const QString WAVE_TITLE_PATH = "C:/Qt/Projects/GameProject/wave_title.png";
+    const QString HELP_IMAGE_1 = "C:/Qt/Projects/GameProject/help1.png";
+    const QString HELP_IMAGE_2 = "C:/Qt/Projects/GameProject/help2.png";
+    const QString HELP_IMAGE_3 = "C:/Qt/Projects/GameProject/help3.png";
+    const QString HELP_IMAGE_4 = "C:/Qt/Projects/GameProject/help4.png";
+    const QString HELP_IMAGE_5 = "C:/Qt/Projects/GameProject/help5.png";
+    const QString HELP_IMAGE_6 = "C:/Qt/Projects/GameProject/help6.png";
     const int MARGIN_TOP = 64;
 
     //enemy constants
     const QString ENEMY_PATH = "C:/Qt/Projects/GameProject/enemy.png";
 }
 
+/*
+    @class GameObject
+    @brief The basic building block for the games components.
+    @detail A base class for all components in the game world. It uses a QImage and QRect
+    to represent the objects within the game.
+*/
 class GameObject
 {
 public:
     //Constructors and Destructors
     GameObject();
-    GameObject(int x, int y, int w, int h);
     GameObject(QString, qreal=1);
     virtual ~GameObject();
 
-    //rect and image get functions
+    //rect and image getter functions
     QRect* getRect(){ return rect; }
-    QImage* getImage(){ return image; }
+    QImage getImage() const { return *image; }
 private:
+    //properties
     QImage* image;
     QRect* rect;
 };
