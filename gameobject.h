@@ -37,8 +37,8 @@ namespace CONSTANTS{
     const int SCREEN_HEIGHT = 400;
     
     //waypoint constants
-    const int WAYPOINT_COUNT = 4;
-    const int WAYPOINTS[2*WAYPOINT_COUNT] = {100,100,250,100,250,250,100,250};
+    const int WAYPOINT_COUNT = 8;
+    const int WAYPOINTS[2*WAYPOINT_COUNT] = {258,50,258,114,82,114,98,242,210,226,194,146,274,162,258,306};
     
     //GUI constants
     const QString TITLE_PATH_1 = "C:/Qt/Projects/GameProject/tower.png";
@@ -68,10 +68,29 @@ namespace CONSTANTS{
     const QString HELP_IMAGE_4 = "C:/Qt/Projects/GameProject/help4.png";
     const QString HELP_IMAGE_5 = "C:/Qt/Projects/GameProject/help5.png";
     const QString HELP_IMAGE_6 = "C:/Qt/Projects/GameProject/help6.png";
+    const QString DIRT_TILE = "C:/Qt/Projects/GameProject/dirt_tile.png";
+    const QString GRASS_TILE = "C:/Qt/Projects/GameProject/grass_tile.png";
+    const QString HIGHLIGHT_TILE = "C:/Qt/Projects/GameProject/tile_highlight.png";
+    const QString TOWER_FIRE = "C:/Qt/Projects/GameProject/fire.png";
+    const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
+    const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
+    const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
     const int MARGIN_TOP = 64;
 
     //enemy constants
     const QString ENEMY_PATH = "C:/Qt/Projects/GameProject/enemy.png";
+
+    //map constants
+    const int TILE_ROW = 8;
+    const int TILE_COL = 8;
+    const bool MAP[TILE_ROW*TILE_COL] = {0,0,0,0,0,0,1,0,
+                                         0,1,1,1,1,1,1,0,
+                                         0,1,0,0,0,0,0,0,
+                                         0,1,0,0,1,1,1,0,
+                                         0,1,0,0,1,0,1,0,
+                                         0,1,1,1,1,0,1,0,
+                                         0,0,0,0,0,0,1,0,
+                                         0,0,0,0,0,0,1,0};
 }
 
 /*

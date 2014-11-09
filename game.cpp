@@ -33,11 +33,13 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 
+#include <QDebug>
+
 /*
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0)
 {
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
@@ -102,6 +104,21 @@ void Game::paintEvent(QPaintEvent *event){
             painter.drawImage(*score->getRect(), score->getImage());
             painter.drawImage(*score_title->getRect(), score_title->getImage());
 
+            //Tower Builder Menu
+            for(const auto o : towerOptions)
+                painter.drawImage(*o->getRect(), o->getImage());
+            painter.drawImage(*towerOptions[curTowerOpt]->getRect(), towerOptHighlight->getImage());
+
+
+            for(auto& t : map){
+                painter.drawImage(*t->getRect(), t->getImage());
+                if(t->isActive())
+                    painter.drawImage(*tileHighlight->getRect(), tileHighlight->getImage());
+            }
+
+            for(const auto t : towers)
+                painter.drawImage(*t->getRect(), t->getImage());
+
             //Draw each of the enemies
             for(auto& e : enemies)
                 painter.drawImage(*e->getRect(), e->getImage());
@@ -142,6 +159,7 @@ void Game::timerEvent(QTimerEvent *event){
     //If the game is active then update the enemy positions
     if(state == INGAME)
         moveEnemies();
+    raycast();
     repaint();
 }
 
@@ -364,6 +382,17 @@ void Game::mousePressEvent(QMouseEvent *event){
             }
             break;
         }
+    case INGAME:{
+        for(auto& t : map)
+            (!t->isPath() && !t->isOccupied() && t->getRect()->contains(event->pos())) ? selectTile(t) : t->setActive(false);
+
+        for(int i=0; i<towerOptions.size(); i++){
+            if(towerOptions[i]->getRect()->contains(event->pos()))
+                curTowerOpt = i;
+        }
+
+        break;
+    }
     }
 }
 
@@ -426,12 +455,22 @@ void Game::loadInGame(){
     score_title = new Image(CONSTANTS::SCORE_TITLE_PATH, 1);
     wave = new Image(CONSTANTS::SCORE_PATH, 0.5);
     wave_title = new Image(CONSTANTS::WAVE_TITLE_PATH, 1);
+    tileHighlight = new Image(CONSTANTS::HIGHLIGHT_TILE);
+    towerOptions.push_back(new Image(CONSTANTS::TOWER_FIRE));
+    towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
+    towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
+    towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
 
     //position the components
     wave_title->getRect()->translate(10,10);
     wave->getRect()->translate(10,10+wave_title->getRect()->height());
     score_title->getRect()->translate(width()-10-score->getRect()->width(), 10);
     score->getRect()->translate(width()-10-score->getRect()->width(), 10+score_title->getRect()->height());
+    towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
+    towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
+    towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
+
+    buildMap();
 }
 
 //A function to delete the ingame components
@@ -441,6 +480,11 @@ void Game::cleanInGame(){
     delete score_title;
     delete wave;
     delete wave_title;
+    delete tileHighlight;
+    for(auto& t : map)
+        delete t;
+    for(auto& o : towerOptions)
+        delete o;
 }
 
 //A function to load the pause components
@@ -491,4 +535,53 @@ void Game::cleanHelp(){
         delete b;
     for(auto& i : helpImages)
         delete i;
+}
+
+void Game::buildMap(){
+    for(const auto d : CONSTANTS::MAP)
+        d ? map.push_back(new Tile(CONSTANTS::DIRT_TILE,d)) : map.push_back(new Tile(CONSTANTS::GRASS_TILE));
+    int xPos = 50;
+    int yPos = 50;
+    int colCounter = 0;
+    for(auto& t : map){
+        t->getRect()->translate(xPos, yPos);
+        if(++colCounter<CONSTANTS::TILE_COL)
+            xPos += t->getRect()->width();
+        else{
+            xPos = 50;
+            colCounter = 0;
+            yPos += t->getRect()->height();
+        }
+    }
+}
+
+void Game::selectTile(Tile* t){
+    if(!t->isActive()){
+        t->setActive(true);
+        tileHighlight->getRect()->moveTo(t->getRect()->topLeft());
+    }
+    else{
+        t->setActive(false);
+        switch(curTowerOpt){
+            case 0:
+                towers.push_back(new Tower(CONSTANTS::TOWER_FIRE, *t->getRect()));
+                break;
+            case 1:
+                towers.push_back(new Tower(CONSTANTS::TOWER_ICE, *t->getRect()));
+                break;
+            case 2:
+                towers.push_back(new Tower(CONSTANTS::TOWER_EARTH, *t->getRect()));
+                break;
+        }
+        t->setOccupied(true);
+    }
+}
+
+void Game::raycast(){
+    for(auto& t : towers){
+        for(auto& e : enemies){
+            int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
+            qDebug() << distance;
+        }
+    }
 }

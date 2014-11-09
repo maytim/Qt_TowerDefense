@@ -29,8 +29,10 @@
 
 #include "waypoint.h"
 #include "enemy.h"
+#include "tile.h"
 #include "image.h"
 #include "button.h"
+#include "tower.h"
 #include <QWidget>
 
 //Enum for all of the different game states
@@ -63,6 +65,9 @@ public:
     void loadWaypoints();
     void generateEnemy();
     void moveEnemies();
+    void buildMap();
+    void selectTile(Tile*);
+    void raycast();
 
 private:
     //Functions to setup the game states' componenets
@@ -86,6 +91,8 @@ private:
     //Containers for the waypoints and enemies
     std::vector<Waypoint*> waypoints;
     std::vector<Enemy*> enemies;
+    std::vector<Tile*> map;
+    std::vector<Tower*> towers;
 
     //Menu components
     Image* title_1;
@@ -99,6 +106,10 @@ private:
     Image* wave_title;
     Image* score;
     Image* score_title;
+    Image* tileHighlight;
+    std::vector<Image*> towerOptions;
+    int curTowerOpt;
+    Image* towerOptHighlight;
 
     //Pause components
     std::vector<Button*> pauseButtons;

@@ -16,11 +16,15 @@ SOURCES += main.cpp\
         game.cpp \
     gameobject.cpp \
     enemy.cpp \
-    button.cpp
+    button.cpp \
+    tile.cpp \
+    tower.cpp
 
 HEADERS  += game.h \
     gameobject.h \
     enemy.h \
     waypoint.h \
     image.h \
-    button.h
+    button.h \
+    tile.h \
+    tower.h
