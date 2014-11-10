@@ -68,6 +68,7 @@ public:
     void buildMap();
     void selectTile(Tile*);
     void raycast();
+    void cleanEnemyList();
 
 private:
     //Functions to setup the game states' componenets
@@ -82,8 +83,12 @@ private:
     void cleanPause();
     void cleanInGame();
 
+    void paintNum(int,QPainter&,int,int);
+
     //The QTimer identifier
     int timerId;
+    int collisionTimer;
+    int moveTimer;
 
     //Current game state
     State state;
@@ -107,6 +112,7 @@ private:
     Image* score;
     Image* score_title;
     Image* tileHighlight;
+    std::vector<Image*> numChars;
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;

@@ -46,9 +46,15 @@ public:
     int getCurWaypoint() const { return currentWaypoint; }
     //Function to increment the currentWaypoint
     void incrementCurWaypoint() { currentWaypoint++; }
+    void inflictDamage(int d) { health -= d; }
+    bool isDead() const { return dead; }
+    int getHealth() const { return health; }
+    void setDead(bool b) { dead = b; }
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
+    int health;
+    bool dead;
 };
 
 #endif // ENEMY_H

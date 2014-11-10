@@ -99,9 +99,11 @@ void Game::paintEvent(QPaintEvent *event){
         }
         case INGAME:{
             //Draw the score and wave Images
-            painter.drawImage(*wave->getRect(), wave->getImage());
+            //painter.drawImage(*wave->getRect(), wave->getImage());
+            paintNum(1,painter,10,10+wave_title->getRect()->height());
             painter.drawImage(*wave_title->getRect(), wave_title->getImage());
-            painter.drawImage(*score->getRect(), score->getImage());
+            //painter.drawImage(*score->getRect(), score->getImage());
+            paintNum(1234,painter,width()-10-score->getRect()->width(), 10+score_title->getRect()->height());
             painter.drawImage(*score_title->getRect(), score_title->getImage());
 
             //Tower Builder Menu
@@ -120,8 +122,10 @@ void Game::paintEvent(QPaintEvent *event){
                 painter.drawImage(*t->getRect(), t->getImage());
 
             //Draw each of the enemies
-            for(auto& e : enemies)
-                painter.drawImage(*e->getRect(), e->getImage());
+            for(auto& e : enemies){
+                if(!e->isDead())
+                    painter.drawImage(*e->getRect(), e->getImage());
+            }
             break;
         }
         case PAUSED:{
@@ -157,9 +161,14 @@ void Game::paintEvent(QPaintEvent *event){
 */
 void Game::timerEvent(QTimerEvent *event){
     //If the game is active then update the enemy positions
-    if(state == INGAME)
-        moveEnemies();
-    raycast();
+    if(state == INGAME){
+        if(event->timerId() == moveTimer)
+            moveEnemies();
+        if(event->timerId() == collisionTimer){
+            raycast();
+            cleanEnemyList();
+        }
+    }
     repaint();
 }
 
@@ -409,6 +418,8 @@ void Game::newGame(){
     generateEnemy();
     //start the timer that will call the 'update loop' every 10 milliseconds
     timerId = startTimer(10);
+    collisionTimer = startTimer(100);
+    moveTimer = startTimer(25);
 }
 
 //A function to clear the existing game data
@@ -419,6 +430,9 @@ void Game::clearGame(){
     for(auto& e : enemies)
         delete e;
     enemies.clear();
+    for(auto& t : towers)
+        delete t;
+    towers.clear();
 }
 
 //A function to load the menu components
@@ -460,6 +474,17 @@ void Game::loadInGame(){
     towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
     towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
+
+    numChars.push_back(new Image(CONSTANTS::CHAR_0));
+    numChars.push_back(new Image(CONSTANTS::CHAR_1));
+    numChars.push_back(new Image(CONSTANTS::CHAR_2));
+    numChars.push_back(new Image(CONSTANTS::CHAR_3));
+    numChars.push_back(new Image(CONSTANTS::CHAR_4));
+    numChars.push_back(new Image(CONSTANTS::CHAR_5));
+    numChars.push_back(new Image(CONSTANTS::CHAR_6));
+    numChars.push_back(new Image(CONSTANTS::CHAR_7));
+    numChars.push_back(new Image(CONSTANTS::CHAR_8));
+    numChars.push_back(new Image(CONSTANTS::CHAR_9));
 
     //position the components
     wave_title->getRect()->translate(10,10);
@@ -582,6 +607,79 @@ void Game::raycast(){
         for(auto& e : enemies){
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
             qDebug() << distance;
+            if(distance < t->getRange()){
+                e->inflictDamage(t->getDamage());
+                if(e->getHealth() < 0)
+                    e->setDead(true);
+            }
         }
     }
+}
+
+void Game::cleanEnemyList(){
+    for(size_t i = 0; i<enemies.size(); i++){
+        if(enemies[i]->isDead()){
+            delete enemies[i];
+            enemies.erase(enemies.begin()+i);
+        }
+    }
+}
+
+void Game::paintNum(int number, QPainter& p, int x, int y){
+    std::string num = std::to_string(number);
+    for(int i = 0; i < num.length(); i++){
+        switch(num[i]){
+            case '0':
+                numChars[0]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[0]->getRect(),numChars[0]->getImage());
+                x += numChars[0]->getRect()->width();
+                break;
+            case '1':
+                numChars[1]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[1]->getRect(),numChars[1]->getImage());
+                x += numChars[1]->getRect()->width();
+                break;
+            case '2':
+                numChars[2]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[2]->getRect(),numChars[2]->getImage());
+                x += numChars[2]->getRect()->width();
+                break;
+            case '3':
+                numChars[3]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[3]->getRect(),numChars[3]->getImage());
+                x += numChars[3]->getRect()->width();
+                break;
+            case '4':
+                numChars[4]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[4]->getRect(),numChars[4]->getImage());
+                x += numChars[4]->getRect()->width();
+                break;
+            case '5':
+                numChars[5]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[5]->getRect(),numChars[5]->getImage());
+                x += numChars[5]->getRect()->width();
+                break;
+            case '6':
+                numChars[6]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[6]->getRect(),numChars[6]->getImage());
+                x += numChars[6]->getRect()->width();
+                break;
+            case '7':
+                numChars[7]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[7]->getRect(),numChars[7]->getImage());
+                x += numChars[7]->getRect()->width();
+                break;
+            case '8':
+                numChars[8]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[8]->getRect(),numChars[8]->getImage());
+                x += numChars[8]->getRect()->width();
+                break;
+            case '9':
+                numChars[9]->getRect()->moveTo(x,y);
+                p.drawImage(*numChars[9]->getRect(),numChars[9]->getImage());
+                x += numChars[9]->getRect()->width();
+                break;
+        }
+    }
+
 }

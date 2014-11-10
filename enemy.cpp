@@ -30,10 +30,8 @@
     The Enemy constructor. That spawns the enemy at a given location
     @param QPointF p the spawn coordinates
 */
-Enemy::Enemy(QPointF p) : GameObject(CONSTANTS::ENEMY_PATH)
+Enemy::Enemy(QPointF p) : GameObject(CONSTANTS::ENEMY_PATH) , currentWaypoint(0) , health(3) , dead(false)
 {
-    //set the currentWaypoint to the first waypoint or the 'spawn' site
-    currentWaypoint = 0;
     //move the enemy object to that 'spawn' site
     getRect()->translate(p.toPoint());
 }

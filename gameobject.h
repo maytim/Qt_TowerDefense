@@ -75,6 +75,16 @@ namespace CONSTANTS{
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
     const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
+    const QString CHAR_0 = "C:/Qt/Projects/GameProject/characters/0.png";
+    const QString CHAR_1 = "C:/Qt/Projects/GameProject/characters/1.png";
+    const QString CHAR_2 = "C:/Qt/Projects/GameProject/characters/2.png";
+    const QString CHAR_3 = "C:/Qt/Projects/GameProject/characters/3.png";
+    const QString CHAR_4 = "C:/Qt/Projects/GameProject/characters/4.png";
+    const QString CHAR_5 = "C:/Qt/Projects/GameProject/characters/5.png";
+    const QString CHAR_6 = "C:/Qt/Projects/GameProject/characters/6.png";
+    const QString CHAR_7 = "C:/Qt/Projects/GameProject/characters/7.png";
+    const QString CHAR_8 = "C:/Qt/Projects/GameProject/characters/8.png";
+    const QString CHAR_9 = "C:/Qt/Projects/GameProject/characters/9.png";
     const int MARGIN_TOP = 64;
 
     //enemy constants
