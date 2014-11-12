@@ -70,6 +70,14 @@ public:
     void raycast();
     void cleanEnemyList();
 
+    //Score and wave getters
+    int getWave() const { return wave_value; }
+    int getScore() const { return score_value; }
+
+    //Updates for wave and score
+    void updateWave(){ wave_value++; }
+    void updateScore(int v) { score_value += v; }
+
 private:
     //Functions to setup the game states' componenets
     void loadMenu();
@@ -84,6 +92,10 @@ private:
     void cleanInGame();
 
     void paintNum(int,QPainter&,int,int);
+
+    //Game Properties
+    int wave_value;
+    int score_value;
 
     //The QTimer identifier
     int timerId;
@@ -100,16 +112,16 @@ private:
     std::vector<Tower*> towers;
 
     //Menu components
-    Image* title_1;
-    Image* title_2;
-    Button* start;
-    Button* help;
-    Button* quit;
+    Image* title_line1;
+    Image* title_line2;
+    Button* start_button;
+    Button* help_button;
+    Button* quit_button;
 
     //Ingame components
-    Image* wave;
+    Image* wave_visual;
     Image* wave_title;
-    Image* score;
+    Image* score_visual;
     Image* score_title;
     Image* tileHighlight;
     std::vector<Image*> numChars;
@@ -123,7 +135,6 @@ private:
     //Help components
     std::vector<Button*> arrows;
     std::vector<Image*> helpImages;
-    Button* back;
 
     //Index to navigate the help images
     int helpIndex;

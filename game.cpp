@@ -39,7 +39,7 @@
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(0)
 {
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
@@ -78,32 +78,30 @@ void Game::paintEvent(QPaintEvent *event){
     switch(state){
         case MENU:{
             //Draw the title Images
-            painter.drawImage(*title_1->getRect(), title_1->getImage());
-            painter.drawImage(*title_2->getRect(), title_2->getImage());
+            painter.drawImage(*title_line1->getRect(), title_line1->getImage());
+            painter.drawImage(*title_line2->getRect(), title_line2->getImage());
 
             //Then for each of the buttons check to display active or passive image
-            if(start->isActive())
-                painter.drawImage(*start->getRect(), start->getActiveImage());
+            if(start_button->isActive())
+                painter.drawImage(*start_button->getRect(), start_button->getActiveImage());
             else
-                painter.drawImage(*start->getRect(), start->getImage());
+                painter.drawImage(*start_button->getRect(), start_button->getImage());
 
-            if(help->isActive())
-                painter.drawImage(*help->getRect(), help->getActiveImage());
+            if(help_button->isActive())
+                painter.drawImage(*help_button->getRect(), help_button->getActiveImage());
             else
-                painter.drawImage(*help->getRect(), help->getImage());
-            if(quit->isActive())
-                painter.drawImage(*quit->getRect(), quit->getActiveImage());
+                painter.drawImage(*help_button->getRect(), help_button->getImage());
+            if(quit_button->isActive())
+                painter.drawImage(*quit_button->getRect(), quit_button->getActiveImage());
             else
-                painter.drawImage(*quit->getRect(), quit->getImage());
+                painter.drawImage(*quit_button->getRect(), quit_button->getImage());
             break;
         }
         case INGAME:{
             //Draw the score and wave Images
-            //painter.drawImage(*wave->getRect(), wave->getImage());
-            paintNum(1,painter,10,10+wave_title->getRect()->height());
+            paintNum(getWave(),painter,10,10+wave_title->getRect()->height());
             painter.drawImage(*wave_title->getRect(), wave_title->getImage());
-            //painter.drawImage(*score->getRect(), score->getImage());
-            paintNum(1234,painter,width()-10-score->getRect()->width(), 10+score_title->getRect()->height());
+            paintNum(getScore(),painter,width()-10-score_visual->getRect()->width(), 10+score_title->getRect()->height());
             painter.drawImage(*score_title->getRect(), score_title->getImage());
 
             //Tower Builder Menu
@@ -249,28 +247,28 @@ void Game::mouseMoveEvent(QMouseEvent *event){
     switch(state){
         case MENU:{
             //If hovering over start change start's image and make sure the others are passive
-            if(start->getRect()->contains(event->pos())){
-                start->setActive(true);
-                help->setActive(false);
-                quit->setActive(false);
+            if(start_button->getRect()->contains(event->pos())){
+                start_button->setActive(true);
+                help_button->setActive(false);
+                quit_button->setActive(false);
             }
             //If hovering over help change help's image and make sure the others are passive
-            else if(help->getRect()->contains(event->pos())){
-                help->setActive(true);
-                start->setActive(false);
-                quit->setActive(false);
+            else if(help_button->getRect()->contains(event->pos())){
+                help_button->setActive(true);
+                start_button->setActive(false);
+                quit_button->setActive(false);
             }
             //If hovering over quit change quit's image and make sure the others are passive
-            else if(quit->getRect()->contains(event->pos())){
-                quit->setActive(true);
-                start->setActive(false);
-                help->setActive(false);
+            else if(quit_button->getRect()->contains(event->pos())){
+                quit_button->setActive(true);
+                start_button->setActive(false);
+                help_button->setActive(false);
             }
             //Otherwise make sure that all the buttons are displaying passive images
             else{
-                start->setActive(false);
-                help->setActive(false);
-                quit->setActive(false);
+                start_button->setActive(false);
+                help_button->setActive(false);
+                quit_button->setActive(false);
             }
             break;
         }
@@ -332,7 +330,7 @@ void Game::mousePressEvent(QMouseEvent *event){
     switch(state){
         case MENU:{
             //Pressing the start button will start the game
-            if(start->getRect()->contains(event->pos())){
+            if(start_button->getRect()->contains(event->pos())){
                 //Start game
                 state = INGAME;
                 //set up a new game
@@ -341,12 +339,12 @@ void Game::mousePressEvent(QMouseEvent *event){
                 setMouseTracking(false);
             }
             //Pressing the help button will activate the Help state
-            else if(help->getRect()->contains(event->pos())){
+            else if(help_button->getRect()->contains(event->pos())){
                 //Open Help Window
                 state = HELP;
             }
             //Pressing the quit button will end the application
-            else if(quit->getRect()->contains(event->pos())){
+            else if(quit_button->getRect()->contains(event->pos())){
                 qApp->quit();
             }
             break;
@@ -438,36 +436,36 @@ void Game::clearGame(){
 //A function to load the menu components
 void Game::loadMenu(){
     //load the corresponding images for each of the components
-    title_1 = new Image(CONSTANTS::TITLE_PATH_1, 0.125);
-    title_2 = new Image(CONSTANTS::TITLE_PATH_2, 0.125);
-    start = new Button(CONSTANTS::START_PATH, CONSTANTS::START_H_PATH, 0.25);
-    help = new Button(CONSTANTS::HELP_PATH, CONSTANTS::HELP_H_PATH, 0.25);
-    quit = new Button(CONSTANTS::QUIT_PATH, CONSTANTS::QUIT_H_PATH, 0.25);
+    title_line1 = new Image(CONSTANTS::TITLE_PATH_1, 0.125);
+    title_line2 = new Image(CONSTANTS::TITLE_PATH_2, 0.125);
+    start_button = new Button(CONSTANTS::START_PATH, CONSTANTS::START_H_PATH, 0.25);
+    help_button = new Button(CONSTANTS::HELP_PATH, CONSTANTS::HELP_H_PATH, 0.25);
+    quit_button = new Button(CONSTANTS::QUIT_PATH, CONSTANTS::QUIT_H_PATH, 0.25);
 
     //position the components
-    title_1->getRect()->translate( (width()-title_1->getRect()->width())/2 , CONSTANTS::MARGIN_TOP );
-    title_2->getRect()->translate( (width()-title_2->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_1->getRect()->height());
-    start->getRect()->translate( (width()-start->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_1->getRect()->height() + title_2->getRect()->height());
-    help->getRect()->translate( (width()-help->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_1->getRect()->height() + title_2->getRect()->height() + start->getRect()->height());
-    quit->getRect()->translate( (width()-quit->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_1->getRect()->height() + title_2->getRect()->height() + start->getRect()->height() + help->getRect()->height());
+    title_line1->getRect()->translate( (width()-title_line1->getRect()->width())/2 , CONSTANTS::MARGIN_TOP );
+    title_line2->getRect()->translate( (width()-title_line2->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height());
+    start_button->getRect()->translate( (width()-start_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height());
+    help_button->getRect()->translate( (width()-help_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height());
+    quit_button->getRect()->translate( (width()-quit_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height() + help_button->getRect()->height());
 }
 
 //A function to delete the menu components
 void Game::cleanMenu(){
     //Delete all of the Menu components
-    delete title_1;
-    delete title_2;
-    delete start;
-    delete help;
-    delete quit;
+    delete title_line1;
+    delete title_line2;
+    delete start_button;
+    delete help_button;
+    delete quit_button;
 }
 
 //A function to load the ingame components
 void Game::loadInGame(){
     //load the corresponding images for each of the components
-    score = new Image(CONSTANTS::SCORE_PATH, 0.5);
+    score_visual = new Image(CONSTANTS::SCORE_PATH, 0.5);
     score_title = new Image(CONSTANTS::SCORE_TITLE_PATH, 1);
-    wave = new Image(CONSTANTS::SCORE_PATH, 0.5);
+    wave_visual = new Image(CONSTANTS::SCORE_PATH, 0.5);
     wave_title = new Image(CONSTANTS::WAVE_TITLE_PATH, 1);
     tileHighlight = new Image(CONSTANTS::HIGHLIGHT_TILE);
     towerOptions.push_back(new Image(CONSTANTS::TOWER_FIRE));
@@ -488,9 +486,9 @@ void Game::loadInGame(){
 
     //position the components
     wave_title->getRect()->translate(10,10);
-    wave->getRect()->translate(10,10+wave_title->getRect()->height());
-    score_title->getRect()->translate(width()-10-score->getRect()->width(), 10);
-    score->getRect()->translate(width()-10-score->getRect()->width(), 10+score_title->getRect()->height());
+    wave_visual->getRect()->translate(10,10+wave_title->getRect()->height());
+    score_title->getRect()->translate(width()-10-score_visual->getRect()->width(), 10);
+    score_visual->getRect()->translate(width()-10-score_visual->getRect()->width(), 10+score_title->getRect()->height());
     towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
     towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
     towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
@@ -501,9 +499,9 @@ void Game::loadInGame(){
 //A function to delete the ingame components
 void Game::cleanInGame(){
     //Delete all of the InGame components
-    delete score;
+    delete score_visual;
     delete score_title;
-    delete wave;
+    delete wave_visual;
     delete wave_title;
     delete tileHighlight;
     for(auto& t : map)
