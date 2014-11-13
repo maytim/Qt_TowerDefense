@@ -617,6 +617,7 @@ void Game::raycast(){
 void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
+            updateScore(enemies[i]->getScore());
             delete enemies[i];
             enemies.erase(enemies.begin()+i);
         }
