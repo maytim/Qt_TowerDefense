@@ -1,28 +1,25 @@
 /*
-    @mainpage HW5
+    @mainpage HW6
     @author Tim Maytom (104016902)
-    @date 11/7/2014
+    @date 11/14/2014
     @section DESCRIPTION
 
-    This is the beginning of my tower defense game. I have implemented the game's GUI
-    and started planning some of the game logic. The GUI is built off custom Images
-    and Button's that are derived from the GameObject class. The game behavior is controlled
-    by its state (MENU, INGAME, PAUSE, HELP). Each state  tells the game to paint a different
-    interface. For the MENU it shows the title, start button, help button, and quit button.
-    Clicking each of these buttons will take you to a new state or end the program. For
-    the interface in the game I created placeholder images for the wave and score counters
-    and labels for each of those counters. You can press the 'P' button while playing to
-    enter the PAUSE state. While in the PAUSE state the game freezes which allows you to
-    continue when you press resume or you can exit the game by pressing main menu. The
-    help button starts the HELP state. This will provide the user the game instructions.
-    The interface has a back button, main image, and navigation arrows. The back button
-    returns you to the main menu. The navigation arrows update the image displayed. The
-    images are placeholders for now but will eventually show the controls of the
-    game.
+    This is an update of my previous assignment. I have worked on adding game logic to the GUI
+    that I had already constructed. The game draws a game map from array data. The enemies navigation
+    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
+    GUI includes the wave and score displays at the top of the screen. The number images for these displays
+    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
+    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
+    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
+    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
+    will be updated by the appropriate value.
 
-    Note: the animation of the enemy in game is the beginnings of my waypoint system. I left
-    it in to indicate that the user is in the INGAME state and to show that when you pause
-    the game that the game is actually pausing.
+    Issues:
+    -no end game event
+    -only a single wave. Need to store wave data, and then create a system to load the waves
+    -no attacking animations
+    -building towers doesn't affect the player's score so the user can create as many towers as they like
+    -no tower upgrade system
 */
 #include "game.h"
 #include "waypoint.h"
@@ -110,20 +107,22 @@ void Game::paintEvent(QPaintEvent *event){
             painter.drawImage(*towerOptions[curTowerOpt]->getRect(), towerOptHighlight->getImage());
 
 
+            //Draw the map tiles
             for(auto& t : map){
                 painter.drawImage(*t->getRect(), t->getImage());
                 if(t->isActive())
                     painter.drawImage(*tileHighlight->getRect(), tileHighlight->getImage());
             }
 
-            for(const auto t : towers)
-                painter.drawImage(*t->getRect(), t->getImage());
-
             //Draw each of the enemies
             for(auto& e : enemies){
                 if(!e->isDead())
                     painter.drawImage(*e->getRect(), e->getImage());
             }
+
+            //Draw the towers
+            for(const auto t : towers)
+                painter.drawImage(*t->getRect(), t->getImage());
             break;
         }
         case PAUSED:{
@@ -158,7 +157,7 @@ void Game::paintEvent(QPaintEvent *event){
     milliseconds and will update enemy positions if ingame or repaint the game.
 */
 void Game::timerEvent(QTimerEvent *event){
-    //If the game is active then update the enemy positions
+    //If the game is active then update the enemy positions, collision events, and spawn enemies
     if(state == INGAME){
         if(event->timerId() == moveTimer)
             moveEnemies();
@@ -398,14 +397,15 @@ void Game::mousePressEvent(QMouseEvent *event){
             break;
         }
     case INGAME:{
+        //Check if the event occurred on a non-path tile that is empty. If so then highlight that tile
         for(auto& t : map)
             (!t->isPath() && !t->isOccupied() && t->getRect()->contains(event->pos())) ? selectTile(t) : t->setActive(false);
 
-        for(int i=0; i<towerOptions.size(); i++){
+        //Check if the click event occured on one of the tower builder options and if so update the selected tower type
+        for(size_t i=0; i<towerOptions.size(); i++){
             if(towerOptions[i]->getRect()->contains(event->pos()))
                 curTowerOpt = i;
         }
-
         break;
     }
     }
@@ -422,10 +422,13 @@ void Game::newGame(){
     loadWaypoints();
     //spawn 1 enemy
     //generateEnemy();
-    //start the timer that will call the 'update loop' every 10 milliseconds
+    //start the timer that will call the 'update loop'
     timerId = startTimer(10);
+    //Start the timer that will check for enemies within the towers range
     collisionTimer = startTimer(100);
+    //Start the timer that will update the enemies positions
     moveTimer = startTimer(25);
+    //Start the timer that will spawn enemies
     spawnTimer = startTimer(2000);
 }
 
@@ -517,6 +520,8 @@ void Game::cleanInGame(){
         delete t;
     for(auto& o : towerOptions)
         delete o;
+    for(auto& c : numChars)
+        delete c;
 }
 
 //A function to load the pause components
@@ -569,16 +574,23 @@ void Game::cleanHelp(){
         delete i;
 }
 
+//A function to generate the tiles that will display the map
 void Game::buildMap(){
+    //For each entry in the MAP array create a dirt tile if true and a grass tile if false
     for(const auto d : CONSTANTS::MAP)
         d ? map.push_back(new Tile(CONSTANTS::DIRT_TILE,d)) : map.push_back(new Tile(CONSTANTS::GRASS_TILE));
+    //Tile starting positions
     int xPos = 50;
     int yPos = 50;
+    //Tile column counter
     int colCounter = 0;
+    //Reposition the newly created tiles into a grid
     for(auto& t : map){
         t->getRect()->translate(xPos, yPos);
+        //Update the column until the maximum width is achieved
         if(++colCounter<CONSTANTS::TILE_COL)
             xPos += t->getRect()->width();
+        //Otherwise move down to the next row
         else{
             xPos = 50;
             colCounter = 0;
@@ -587,11 +599,14 @@ void Game::buildMap(){
     }
 }
 
+//A function to handle the selection of a tile
 void Game::selectTile(Tile* t){
+    //If the tile isn't already selected then select it by highlighting it
     if(!t->isActive()){
         t->setActive(true);
         tileHighlight->getRect()->moveTo(t->getRect()->topLeft());
     }
+    //Otherwise if it is already selected build the selected tower type on the tile
     else{
         t->setActive(false);
         switch(curTowerOpt){
@@ -609,23 +624,30 @@ void Game::selectTile(Tile* t){
     }
 }
 
+//A function to detect collisions between Tower and Enemy objects
 void Game::raycast(){
     for(auto& t : towers){
         for(auto& e : enemies){
+            //Draw a line between each tower and all of the enemies
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
-            qDebug() << distance;
+            //If the line's distance is less than the tower's range then that enemy can be attacked
             if(distance < t->getRange()){
+                //damage the enemy
                 e->inflictDamage(t->getDamage());
-                if(e->getHealth() < 0)
+                //If the enemy's health is depleted then indicate that it is dead
+                if(e->getHealth() <= 0)
                     e->setDead(true);
+                break;
             }
         }
     }
 }
 
+//A function to delete all dead Enemies in the game
 void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
+            //When deleting the enemy, award the player the appropriate points
             updateScore(enemies[i]->getScore());
             delete enemies[i];
             enemies.erase(enemies.begin()+i);
@@ -633,9 +655,13 @@ void Game::cleanEnemyList(){
     }
 }
 
+//A function to create the Images for the number displays
 void Game::paintNum(int number, QPainter& p, int x, int y){
+    //Convert the desired number into a string to be parsed
     std::string num = std::to_string(number);
-    for(int i = 0; i < num.length(); i++){
+    //For each char in the string draw the appropriate Image
+    //Also update the cordinates x,y so that the Images display corrrectly
+    for(size_t i = 0; i < num.length(); i++){
         switch(num[i]){
             case '0':
                 numChars[0]->getRect()->moveTo(x,y);

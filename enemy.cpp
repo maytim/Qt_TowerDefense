@@ -1,28 +1,25 @@
 /*
-    @mainpage HW5
+    @mainpage HW6
     @author Tim Maytom (104016902)
-    @date 11/7/2014
+    @date 11/14/2014
     @section DESCRIPTION
 
-    This is the beginning of my tower defense game. I have implemented the game's GUI
-    and started planning some of the game logic. The GUI is built off custom Images
-    and Button's that are derived from the GameObject class. The game behavior is controlled
-    by its state (MENU, INGAME, PAUSE, HELP). Each state  tells the game to paint a different
-    interface. For the MENU it shows the title, start button, help button, and quit button.
-    Clicking each of these buttons will take you to a new state or end the program. For
-    the interface in the game I created placeholder images for the wave and score counters
-    and labels for each of those counters. You can press the 'P' button while playing to
-    enter the PAUSE state. While in the PAUSE state the game freezes which allows you to
-    continue when you press resume or you can exit the game by pressing main menu. The
-    help button starts the HELP state. This will provide the user the game instructions.
-    The interface has a back button, main image, and navigation arrows. The back button
-    returns you to the main menu. The navigation arrows update the image displayed. The
-    images are placeholders for now but will eventually show the controls of the
-    game.
+    This is an update of my previous assignment. I have worked on adding game logic to the GUI
+    that I had already constructed. The game draws a game map from array data. The enemies navigation
+    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
+    GUI includes the wave and score displays at the top of the screen. The number images for these displays
+    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
+    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
+    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
+    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
+    will be updated by the appropriate value.
 
-    Note: the animation of the enemy in game is the beginnings of my waypoint system. I left
-    it in to indicate that the user is in the INGAME state and to show that when you pause
-    the game that the game is actually pausing.
+    Issues:
+    -no end game event
+    -only a single wave. Need to store wave data, and then create a system to load the waves
+    -no attacking animations
+    -building towers doesn't affect the player's score so the user can create as many towers as they like
+    -no tower upgrade system
 */
 #include "enemy.h"
 

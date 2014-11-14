@@ -17,7 +17,6 @@ SOURCES += main.cpp\
     gameobject.cpp \
     enemy.cpp \
     button.cpp \
-    tile.cpp \
     tower.cpp
 
 HEADERS  += game.h \
