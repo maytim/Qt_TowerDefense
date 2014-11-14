@@ -39,7 +39,7 @@
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(0) , enemyCount(0)
 {
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
@@ -166,6 +166,9 @@ void Game::timerEvent(QTimerEvent *event){
             raycast();
             cleanEnemyList();
         }
+        if(event->timerId() == spawnTimer){
+            generateEnemy();
+        }
     }
     repaint();
 }
@@ -184,7 +187,12 @@ void Game::loadWaypoints(){
  * @brief A function to spawn a new enemy
 */
 void Game::generateEnemy(){
-    enemies.push_back(new Enemy(waypoints[0]->getPos()));
+    killTimer(spawnTimer);
+    if(enemyCount < 5){
+        enemies.push_back(new Enemy(waypoints[0]->getPos()));
+        enemyCount++;
+        spawnTimer = startTimer(2000);
+    }
 }
 
 /*
@@ -413,11 +421,12 @@ void Game::newGame(){
     //load new data
     loadWaypoints();
     //spawn 1 enemy
-    generateEnemy();
+    //generateEnemy();
     //start the timer that will call the 'update loop' every 10 milliseconds
     timerId = startTimer(10);
     collisionTimer = startTimer(100);
     moveTimer = startTimer(25);
+    spawnTimer = startTimer(2000);
 }
 
 //A function to clear the existing game data

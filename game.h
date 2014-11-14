@@ -101,6 +101,10 @@ private:
     int timerId;
     int collisionTimer;
     int moveTimer;
+    int spawnTimer;
+
+    //Count for spawnTimer
+    int enemyCount;
 
     //Current game state
     State state;
