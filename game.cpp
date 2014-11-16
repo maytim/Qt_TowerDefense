@@ -161,6 +161,12 @@ void Game::timerEvent(QTimerEvent *event){
     if(state == INGAME){
         if(event->timerId() == moveTimer)
             moveEnemies();
+        for(auto& t : towers){
+            if(event->timerId()==t->getTimer()){
+                killTimer(t->getTimer());
+                t->setCoolDown(false);
+            }
+        }
         if(event->timerId() == collisionTimer){
             raycast();
             cleanEnemyList();
@@ -201,15 +207,16 @@ void Game::generateEnemy(){
 void Game::moveEnemies(){
     for(auto& e : enemies){
         //If the enemy has reached the final waypoint then don't take any action
-        if(e->getRect()->contains(waypoints[CONSTANTS::WAYPOINT_COUNT - 1]->getPos().toPoint()))
+        if(e->getRect()->contains(navPath[CONSTANTS::PATH_TILE_COUNT - 1].toPoint()))
+            //REACHED END
             break;
         //If the enemy as reached its target waypoint then update its target waypoint
-        if(e->getRect()->contains(waypoints[e->getCurWaypoint()+1]->getPos().toPoint()))
+        if(e->getRect()->contains(navPath[e->getCurWaypoint()+1].toPoint()))
         {
             e->incrementCurWaypoint();
         }
         //Move the enemy towards its targeted waypoint
-        e->move(waypoints[e->getCurWaypoint()+1]->getPos());
+        e->move(navPath[e->getCurWaypoint()+1]);
     }
 }
 
@@ -506,6 +513,7 @@ void Game::loadInGame(){
     towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
 
     buildMap();
+    createNavigationPath();
 }
 
 //A function to delete the ingame components
@@ -578,7 +586,7 @@ void Game::cleanHelp(){
 void Game::buildMap(){
     //For each entry in the MAP array create a dirt tile if true and a grass tile if false
     for(const auto d : CONSTANTS::MAP)
-        d ? map.push_back(new Tile(CONSTANTS::DIRT_TILE,d)) : map.push_back(new Tile(CONSTANTS::GRASS_TILE));
+        d==0 ?  map.push_back(new Tile(CONSTANTS::GRASS_TILE)) : map.push_back(new Tile(CONSTANTS::DIRT_TILE,d));
     //Tile starting positions
     int xPos = 50;
     int yPos = 50;
@@ -631,9 +639,13 @@ void Game::raycast(){
             //Draw a line between each tower and all of the enemies
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
             //If the line's distance is less than the tower's range then that enemy can be attacked
-            if(distance < t->getRange()){
+            if(distance < t->getRange() && !t->isCoolDown()){
+                //Cool down tower
+                t->setCoolDown(true);
+                t->setTimer(startTimer(t->getCoolDown()));
                 //damage the enemy
                 e->inflictDamage(t->getDamage());
+                qDebug() << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0)
                     e->setDead(true);
@@ -716,4 +728,11 @@ void Game::paintNum(int number, QPainter& p, int x, int y){
         }
     }
 
+}
+
+void Game::createNavigationPath(){
+    for(auto& t : map){
+        if(t->isPath())
+            navPath[t->getPathID()-1] = t->getRect()->center();
+    }
 }

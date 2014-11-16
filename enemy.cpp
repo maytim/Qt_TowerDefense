@@ -41,9 +41,9 @@ void Enemy::move(QPointF w){
     //temporary direction variables
     int x=0, y=0;
     //if the waypoint is to the left/right of the enemy then change its x direction
-    (w.rx() > getRect()->topLeft().rx()) ? x=1 : x=-1;
+    (w.rx() > getRect()->center().rx()) ? x=1 : x=-1;
     //if the waypoint is above/below the enemy then change its y direction
-    (w.ry() > getRect()->topLeft().ry()) ? y=1 : y=-1;
+    (w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
     //finally move the enemy one step towards its target waypoint
     getRect()->translate(x, y);
 }

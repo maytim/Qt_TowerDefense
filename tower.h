@@ -40,10 +40,19 @@ public:
     //Getters
     int getDamage() const { return damage; }
     int getRange() const { return range; }
+    int getTimer() const { return timerID; }
+    bool isCoolDown() const { return coolDown; }
+    int getCoolDown() const { return coolDownTime; }
+
+    void setTimer(int id) { timerID = id; }
+    void setCoolDown(bool c) { coolDown = c; }
 private:
     //Attacking stats
     int damage;
     int range;
+    int timerID;
+    bool coolDown;
+    int coolDownTime;
 };
 
 #endif // TOWER_H

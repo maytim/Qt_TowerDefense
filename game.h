@@ -66,6 +66,7 @@ public:
     void selectTile(Tile*);
     void raycast();
     void cleanEnemyList();
+    void createNavigationPath();
 
     //Score and wave getters
     int getWave() const { return wave_value; }
@@ -74,6 +75,8 @@ public:
     //Updates for wave and score
     void updateWave(){ wave_value++; }
     void updateScore(int v) { score_value += v; }
+
+    QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 private:
     //Functions to setup the game states' componenets
     void loadMenu();
