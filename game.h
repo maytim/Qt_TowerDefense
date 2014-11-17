@@ -110,7 +110,6 @@ private:
     State state;
 
     //Containers for the waypoints and enemies
-    std::vector<Waypoint*> waypoints;
     std::vector<Enemy*> enemies;
     std::vector<Tile*> map;
     std::vector<Tower*> towers;

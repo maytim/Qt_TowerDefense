@@ -27,6 +27,6 @@
 #include <QApplication>
 
 //Create a tower with default stats for it's damage and range. Move it to the tile that it was created over
-Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , damage(1) , range(40) , coolDown(false) , coolDownTime(1000){
+Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , cost(10), damage(1) , range(40) , coolDown(false) , coolDownTime(1000){
     getRect()->moveTo(tile.topLeft());
 }

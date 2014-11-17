@@ -36,7 +36,7 @@
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(0) , enemyCount(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(10) , enemyCount(0)
 {
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
@@ -58,8 +58,6 @@ Game::~Game()
     cleanHelp();
     cleanPause();
     cleanInGame();
-    for(auto& w : waypoints)
-        delete w;
     for(auto& e : enemies)
         delete e;
 }
@@ -179,22 +177,13 @@ void Game::timerEvent(QTimerEvent *event){
 }
 
 /*
-    loadWaypoints
-    @brief A function to instantiate the waypoint objects
-*/
-void Game::loadWaypoints(){
-    for(int i =0; i< CONSTANTS::WAYPOINT_COUNT*2; i+=2)
-        waypoints.push_back(new Waypoint(CONSTANTS::WAYPOINTS[i],CONSTANTS::WAYPOINTS[i+1]));
-}
-
-/*
  * generateEnemy
  * @brief A function to spawn a new enemy
 */
 void Game::generateEnemy(){
     killTimer(spawnTimer);
     if(enemyCount < 5){
-        enemies.push_back(new Enemy(waypoints[0]->getPos()));
+        enemies.push_back(new Enemy(navPath[0]));
         enemyCount++;
         spawnTimer = startTimer(2000);
     }
@@ -426,9 +415,8 @@ void Game::newGame(){
     //Delete any existing data
     clearGame();
     //load new data
-    loadWaypoints();
-    //spawn 1 enemy
-    //generateEnemy();
+    generateEnemy();
+    score_value = 10;
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
@@ -441,15 +429,15 @@ void Game::newGame(){
 
 //A function to clear the existing game data
 void Game::clearGame(){
-    for(auto& w: waypoints)
-        delete w;
-    waypoints.clear();
     for(auto& e : enemies)
         delete e;
     enemies.clear();
     for(auto& t : towers)
         delete t;
     towers.clear();
+    for(auto& t : map){
+        t->setOccupied(false);
+    }
 }
 
 //A function to load the menu components
@@ -619,7 +607,10 @@ void Game::selectTile(Tile* t){
         t->setActive(false);
         switch(curTowerOpt){
             case 0:
-                towers.push_back(new Tower(CONSTANTS::TOWER_FIRE, *t->getRect()));
+                if(getScore() >= CONSTANTS::TOWER_COST){
+                    updateScore(-CONSTANTS::TOWER_COST);
+                    towers.push_back(new Tower(CONSTANTS::TOWER_FIRE, *t->getRect()));
+                }
                 break;
             case 1:
                 towers.push_back(new Tower(CONSTANTS::TOWER_ICE, *t->getRect()));

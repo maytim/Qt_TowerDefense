@@ -43,11 +43,13 @@ public:
     int getTimer() const { return timerID; }
     bool isCoolDown() const { return coolDown; }
     int getCoolDown() const { return coolDownTime; }
+    int getCost() const { return cost; }
 
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
 private:
     //Attacking stats
+    int cost;
     int damage;
     int range;
     int timerID;

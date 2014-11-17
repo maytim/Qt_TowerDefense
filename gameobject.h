@@ -99,6 +99,7 @@ namespace CONSTANTS{
                                          0,11,12,13,14, 0,20, 0,
                                          0, 0, 0, 0, 0, 0,21, 0,
                                          0, 0, 0, 0, 0, 0,22, 0};
+    const int TOWER_COST = 10;
 }
 
 /*
