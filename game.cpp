@@ -196,9 +196,12 @@ void Game::generateEnemy(){
 void Game::moveEnemies(){
     for(auto& e : enemies){
         //If the enemy has reached the final waypoint then don't take any action
-        if(e->getRect()->contains(navPath[CONSTANTS::PATH_TILE_COUNT - 1].toPoint()))
+        if(e->getRect()->contains(navPath[CONSTANTS::PATH_TILE_COUNT - 1].toPoint())){
             //REACHED END
+            setMouseTracking(true);
+            state = MENU;
             break;
+        }
         //If the enemy as reached its target waypoint then update its target waypoint
         if(e->getRect()->contains(navPath[e->getCurWaypoint()+1].toPoint()))
         {
@@ -417,6 +420,7 @@ void Game::newGame(){
     //load new data
     generateEnemy();
     score_value = 10;
+    enemyCount = 0;
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
@@ -613,10 +617,16 @@ void Game::selectTile(Tile* t){
                 }
                 break;
             case 1:
-                towers.push_back(new Tower(CONSTANTS::TOWER_ICE, *t->getRect()));
+                if(getScore() >= CONSTANTS::TOWER_COST){
+                    updateScore(-CONSTANTS::TOWER_COST);
+                    towers.push_back(new Tower(CONSTANTS::TOWER_ICE, *t->getRect()));
+                }
                 break;
             case 2:
-                towers.push_back(new Tower(CONSTANTS::TOWER_EARTH, *t->getRect()));
+                if(getScore() >= CONSTANTS::TOWER_COST){
+                    updateScore(-CONSTANTS::TOWER_COST);
+                    towers.push_back(new Tower(CONSTANTS::TOWER_EARTH, *t->getRect()));
+                }
                 break;
         }
         t->setOccupied(true);
