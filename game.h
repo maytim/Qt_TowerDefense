@@ -30,6 +30,7 @@
 #include "image.h"
 #include "button.h"
 #include "tower.h"
+#include "wavegenerator.h"
 #include <QWidget>
 
 //Enum for all of the different game states
@@ -93,6 +94,11 @@ private:
     //A helper function to draw the scores using Images
     void paintNum(int,QPainter&,int,int);
 
+    //Spawning function
+    void spawner();
+
+    WaveGenerator wave_generator;
+
     //Game Properties
     int wave_value;
     int score_value;
@@ -111,6 +117,7 @@ private:
 
     //Containers for the waypoints and enemies
     std::vector<Enemy*> enemies;
+    std::vector<Enemy*> spawnList;
     std::vector<Tile*> map;
     std::vector<Tower*> towers;
 

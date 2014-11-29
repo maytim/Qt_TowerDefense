@@ -32,6 +32,10 @@
     @detail This class will hold the properties and functions for the Enemy objects. It currently
     has basic movement functions implemented.
 */
+
+//Types of enemies
+enum ENEMY{Normal, Badass};
+
 class Enemy : public GameObject
 {
 public:
@@ -48,12 +52,14 @@ public:
     int getHealth() const { return health; }
     void setDead(bool b) { dead = b; }
     int getScore() const { return score; }
+    int getSpawnDelay() const { return spawnDelay; }
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
     int health;
     bool dead;
     int score;
+    int spawnDelay;
 };
 
 #endif // ENEMY_H

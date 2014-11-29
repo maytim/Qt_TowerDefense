@@ -24,6 +24,7 @@
 #include "game.h"
 #include "waypoint.h"
 #include "enemy.h"
+#include "wavegenerator.h"
 
 #include <QApplication>
 #include <QPainter>
@@ -170,7 +171,8 @@ void Game::timerEvent(QTimerEvent *event){
             cleanEnemyList();
         }
         if(event->timerId() == spawnTimer){
-            generateEnemy();
+            //generateEnemy();
+            spawner();
         }
     }
     repaint();
@@ -186,6 +188,21 @@ void Game::generateEnemy(){
         enemies.push_back(new Enemy(navPath[0]));
         enemyCount++;
         spawnTimer = startTimer(2000);
+    }    
+}
+
+void Game::spawner(){
+    //Stop the current timer
+    killTimer(spawnTimer);
+
+    //Then start spawning the new enemies
+    if(!spawnList.empty()){
+       // Enemy* spawn = spawnList.back();
+
+        enemies.push_back(spawnList.back());
+        enemyCount++;
+        spawnTimer = startTimer(spawnList.back()->getSpawnDelay());
+        spawnList.pop_back();
     }
 }
 
@@ -418,7 +435,7 @@ void Game::newGame(){
     //Delete any existing data
     clearGame();
     //load new data
-    generateEnemy();
+    spawnList = wave_generator.generateSpawnList( getWave(), navPath[0] );
     score_value = 10;
     enemyCount = 0;
     //start the timer that will call the 'update loop'
@@ -442,6 +459,7 @@ void Game::clearGame(){
     for(auto& t : map){
         t->setOccupied(false);
     }
+    spawnList.clear();
 }
 
 //A function to load the menu components
@@ -737,3 +755,5 @@ void Game::createNavigationPath(){
             navPath[t->getPathID()-1] = t->getRect()->center();
     }
 }
+
+

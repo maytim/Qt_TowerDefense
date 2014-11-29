@@ -1,0 +1,84 @@
+[33mcommit 5b19db9b5bd960a0769bc68ff19ba75af6f9414f[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Thu Nov 27 19:20:27 2014 -0800
+
+    Tower spawn bug fix and end game event update
+
+[33mcommit bcc73dc28709e382ac30de84d619528568a513d7[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Sun Nov 16 19:45:48 2014 -0800
+
+    Day 10: Added cost for towers, fixed Pause bug with resetting tile occupied property
+
+[33mcommit 58337eab0b5388edac2a9bacfd53b424a25511a2[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Sat Nov 15 22:28:00 2014 -0800
+
+    Day 8: Automate nav path generation, improved navigation, added attack cooldown
+
+[33mcommit 2f012630822710d8513a1526b00531ff35c03598[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Fri Nov 14 13:37:23 2014 -0800
+
+    Day 7: Updated comments and code cleanup
+
+[33mcommit f36ab553372d86dd93e8e1fb73d708834787dce9[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Thu Nov 13 20:40:35 2014 -0800
+
+    Day 6: Basic enemy spawner
+
+[33mcommit 7ee89e327041a96a5038c53f5792465b56f905ff[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Wed Nov 12 20:13:21 2014 -0800
+
+    Day 5: Updates score when enemy is killed
+
+[33mcommit eb49a4e8897ae0fbf9806b284b448972d27d0f7f[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Tue Nov 11 20:51:23 2014 -0800
+
+    Day 4: Add score and wave properties, clean up some variable nomenclature
+
+[33mcommit 5103200eb5d58cc598d72635de505cdd447f7983[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Sun Nov 9 19:52:05 2014 -0800
+
+    Day 3: Ability to remove Enemy objects when destroyed from Game, custom Score and Wave image generator to display their respective values
+
+[33mcommit 9af8f182260d9659526c6adb96063de91e5d41dc[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Sat Nov 8 17:22:38 2014 -0800
+
+    Day 3: Tile map generator, basic tower builder, start of raycasting
+
+[33mcommit 3361f87a9a7227918f665c7e48a0788183915849[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Fri Nov 7 21:00:49 2014 -0800
+
+    Day 2: Basic GUI complete.
+
+[33mcommit 48fc4a9b6a11a46ba82a6520c7d68b0fb111bd7d[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Thu Nov 6 19:24:45 2014 -0800
+
+    day 1 work
+
+[33mcommit 3929d887066ca004f789ae60b8943cb227418775[m
+Merge: b581a49 28757d2
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Mon Nov 3 15:09:34 2014 -0800
+
+    Merge branch 'master' of https://github.com/maytim/Qt_TowerDefense
+
+[33mcommit b581a492153efad2fdc7b16eeccf3436a021b55c[m
+Author: Tim Maytom <timothy.maytom@gmail.com>
+Date:   Mon Nov 3 15:05:02 2014 -0800
+
+    initial commit
+
+[33mcommit 28757d25f8dcdeaa767b5821259775578f217014[m
+Author: Tim <timothy.maytom@gmail.com>
+Date:   Mon Nov 3 14:42:59 2014 -0800
+
+    Initial commit

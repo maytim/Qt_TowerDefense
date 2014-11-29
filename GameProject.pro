@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     gameobject.cpp \
     enemy.cpp \
     button.cpp \
-    tower.cpp
+    tower.cpp \
+    wavegenerator.cpp
 
 HEADERS  += game.h \
     gameobject.h \
@@ -26,4 +27,5 @@ HEADERS  += game.h \
     image.h \
     button.h \
     tile.h \
-    tower.h
+    tower.h \
+    wavegenerator.h
