@@ -93,6 +93,8 @@ private:
 
     //A helper function to draw the scores using Images
     void paintNum(int,QPainter&,int,int);
+    void paintLetter(std::string,double,QPainter&,int,int,bool);
+    void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
 
     //Spawning function
     void spawner();
@@ -135,6 +137,8 @@ private:
     Image* score_title;
     Image* tileHighlight;
     std::vector<Image*> numChars;
+    std::vector<Image*> letterChars;
+    std::vector<Image*> letterCharsAct;
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;

@@ -79,26 +79,26 @@ void Game::paintEvent(QPaintEvent *event){
 
             //Then for each of the buttons check to display active or passive image
             if(start_button->isActive())
-                painter.drawImage(*start_button->getRect(), start_button->getActiveImage());
+                paintLetter("start",0.25,painter,start_button->getRect()->x(),start_button->getRect()->y(), true);
             else
-                painter.drawImage(*start_button->getRect(), start_button->getImage());
+                paintLetter("start",0.25,painter,start_button->getRect()->x(),start_button->getRect()->y(), false);
 
             if(help_button->isActive())
-                painter.drawImage(*help_button->getRect(), help_button->getActiveImage());
+                paintLetter("help",0.25,painter,help_button->getRect()->x(),help_button->getRect()->y(), true);
             else
-                painter.drawImage(*help_button->getRect(), help_button->getImage());
+                paintLetter("help",0.25,painter,help_button->getRect()->x(),help_button->getRect()->y(), false);
             if(quit_button->isActive())
-                painter.drawImage(*quit_button->getRect(), quit_button->getActiveImage());
+                paintLetter("quit",0.25,painter,quit_button->getRect()->x(),quit_button->getRect()->y(), true);
             else
-                painter.drawImage(*quit_button->getRect(), quit_button->getImage());
+                paintLetter("quit",0.25,painter,quit_button->getRect()->x(),quit_button->getRect()->y(), false);
             break;
         }
         case INGAME:{
             //Draw the score and wave Images
             paintNum(getWave(),painter,10,10+wave_title->getRect()->height());
-            painter.drawImage(*wave_title->getRect(), wave_title->getImage());
+            paintLetter("wave",1,painter,wave_title->getRect()->x(),wave_title->getRect()->y(), false);
             paintNum(getScore(),painter,width()-10-score_visual->getRect()->width(), 10+score_title->getRect()->height());
-            painter.drawImage(*score_title->getRect(), score_title->getImage());
+            paintLetter("score",1,painter,score_title->getRect()->x(),score_title->getRect()->y(), false);
 
             //Tower Builder Menu
             for(const auto o : towerOptions)
@@ -200,7 +200,6 @@ void Game::spawner(){
        // Enemy* spawn = spawnList.back();
 
         enemies.push_back(spawnList.back());
-        enemyCount++;
         spawnTimer = startTimer(spawnList.back()->getSpawnDelay());
         spawnList.pop_back();
     }
@@ -437,7 +436,7 @@ void Game::newGame(){
     //load new data
     spawnList = wave_generator.generateSpawnList( getWave(), navPath[0] );
     score_value = 10;
-    enemyCount = 0;
+    enemyCount = spawnList.size();
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
@@ -512,6 +511,60 @@ void Game::loadInGame(){
     numChars.push_back(new Image(CONSTANTS::CHAR_7));
     numChars.push_back(new Image(CONSTANTS::CHAR_8));
     numChars.push_back(new Image(CONSTANTS::CHAR_9));
+
+    letterChars.push_back(new Image(CONSTANTS::CHAR_A));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_B));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_C));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_D));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_E));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_F));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_G));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_H));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_I));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_J));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_K));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_L));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_M));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_N));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_O));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_P));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_Q));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_R));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_S));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_T));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_U));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_V));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_W));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_X));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_Y));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_Z));
+
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_A_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_B_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_C_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_D_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_E_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_F_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_G_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_H_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_I_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_J_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_K_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_L_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_M_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_N_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_O_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_P_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Q_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_R_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_S_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_T_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_U_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_V_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_W_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_X_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Y_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Z_ACT));
 
     //position the components
     wave_title->getRect()->translate(10,10);
@@ -666,8 +719,27 @@ void Game::raycast(){
                 e->inflictDamage(t->getDamage());
                 qDebug() << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
-                if(e->getHealth() <= 0)
+                if(e->getHealth() <= 0){
                     e->setDead(true);
+                    enemyCount--;
+
+                    //End wave
+                    if(enemyCount == 0){
+                        //New wave
+                        updateWave();
+
+                        //Clear enemy list
+                        for(auto& e : enemies)
+                            delete e;
+                        enemies.clear();
+
+                        //Clear spawnList
+                        spawnList.clear();
+
+                        //New spawnList
+                        spawnList = wave_generator.generateSpawnList(getWave(), navPath[0]);
+                    }
+                }
                 break;
             }
         }
@@ -744,6 +816,186 @@ void Game::paintNum(int number, QPainter& p, int x, int y){
                 p.drawImage(*numChars[9]->getRect(),numChars[9]->getImage());
                 x += numChars[9]->getRect()->width();
                 break;
+        }
+    }
+
+}
+
+void Game::printChar(Image* character, double scale, QPainter& p, int& x, int& y){
+    Image* copy = character->scaledCopy(scale);
+    copy->getRect()->moveTo(x,y);
+    p.drawImage(*copy->getRect(),copy->getImage());
+    x += copy->getRect()->width();
+}
+
+//A function to create the Images for the number displays
+void Game::paintLetter(std::string word, double scale, QPainter& p, int x, int y, bool active){
+    //For each char in the string draw the appropriate Image
+    //Also update the cordinates x,y so that the Images display corrrectly
+    for(size_t i = 0; i < word.length(); i++){
+        if(active){
+            switch(word[i]){
+            case 'a':
+                printChar(letterCharsAct[0], scale, p, x, y);
+                break;
+            case 'b':
+                printChar(letterCharsAct[1], scale, p, x, y);
+                break;
+            case 'c':
+                printChar(letterCharsAct[2], scale, p, x, y);
+                break;
+            case 'd':
+                printChar(letterCharsAct[3], scale, p, x, y);
+                break;
+            case 'e':
+                printChar(letterCharsAct[4], scale, p, x, y);
+                break;
+            case 'f':
+                printChar(letterCharsAct[5], scale, p, x, y);
+                break;
+            case 'g':
+                printChar(letterCharsAct[6], scale, p, x, y);
+                break;
+            case 'h':
+                printChar(letterCharsAct[7], scale, p, x, y);
+                break;
+            case 'i':
+                printChar(letterCharsAct[8], scale, p, x, y);
+                break;
+            case 'j':
+                printChar(letterCharsAct[9], scale, p, x, y);
+                break;
+            case 'k':
+                printChar(letterCharsAct[10], scale, p, x, y);
+                break;
+            case 'l':
+                printChar(letterCharsAct[11], scale, p, x, y);
+                break;
+            case 'm':
+                printChar(letterCharsAct[12], scale, p, x, y);
+                break;
+            case 'n':
+                printChar(letterCharsAct[13], scale, p, x, y);
+                break;
+            case 'o':
+                printChar(letterCharsAct[14], scale, p, x, y);
+                break;
+            case 'p':
+                printChar(letterCharsAct[15], scale, p, x, y);
+                break;
+            case 'q':
+                printChar(letterCharsAct[16], scale, p, x, y);
+                break;
+            case 'r':
+                printChar(letterCharsAct[17], scale, p, x, y);
+                break;
+            case 's':
+                printChar(letterCharsAct[18], scale, p, x, y);
+                break;
+            case 't':
+                printChar(letterCharsAct[19], scale, p, x, y);
+                break;
+            case 'u':
+                printChar(letterCharsAct[20], scale, p, x, y);
+                break;
+            case 'v':
+                printChar(letterCharsAct[21], scale, p, x, y);
+                break;
+            case 'w':
+                printChar(letterCharsAct[22], scale, p, x, y);
+                break;
+            case 'x':
+                printChar(letterCharsAct[23], scale, p, x, y);
+                break;
+            case 'y':
+                printChar(letterCharsAct[24], scale, p, x, y);
+                break;
+            case 'z':
+                printChar(letterCharsAct[25], scale, p, x, y);
+                break;
+        }
+        }
+        else{
+            switch(word[i]){
+                case 'a':
+                    printChar(letterChars[0], scale, p, x, y);
+                    break;
+                case 'b':
+                    printChar(letterChars[1], scale, p, x, y);
+                    break;
+                case 'c':
+                    printChar(letterChars[2], scale, p, x, y);
+                    break;
+                case 'd':
+                    printChar(letterChars[3], scale, p, x, y);
+                    break;
+                case 'e':
+                    printChar(letterChars[4], scale, p, x, y);
+                    break;
+                case 'f':
+                    printChar(letterChars[5], scale, p, x, y);
+                    break;
+                case 'g':
+                    printChar(letterChars[6], scale, p, x, y);
+                    break;
+                case 'h':
+                    printChar(letterChars[7], scale, p, x, y);
+                    break;
+                case 'i':
+                    printChar(letterChars[8], scale, p, x, y);
+                    break;
+                case 'j':
+                    printChar(letterChars[9], scale, p, x, y);
+                    break;
+                case 'k':
+                    printChar(letterChars[10], scale, p, x, y);
+                    break;
+                case 'l':
+                    printChar(letterChars[11], scale, p, x, y);
+                    break;
+                case 'm':
+                    printChar(letterChars[12], scale, p, x, y);
+                    break;
+                case 'n':
+                    printChar(letterChars[13], scale, p, x, y);
+                    break;
+                case 'o':
+                    printChar(letterChars[14], scale, p, x, y);
+                    break;
+                case 'p':
+                    printChar(letterChars[15], scale, p, x, y);
+                    break;
+                case 'q':
+                    printChar(letterChars[16], scale, p, x, y);
+                    break;
+                case 'r':
+                    printChar(letterChars[17], scale, p, x, y);
+                    break;
+                case 's':
+                    printChar(letterChars[18], scale, p, x, y);
+                    break;
+                case 't':
+                    printChar(letterChars[19], scale, p, x, y);
+                    break;
+                case 'u':
+                    printChar(letterChars[20], scale, p, x, y);
+                    break;
+                case 'v':
+                    printChar(letterChars[21], scale, p, x, y);
+                    break;
+                case 'w':
+                    printChar(letterChars[22], scale, p, x, y);
+                    break;
+                case 'x':
+                    printChar(letterChars[23], scale, p, x, y);
+                    break;
+                case 'y':
+                    printChar(letterChars[24], scale, p, x, y);
+                    break;
+                case 'z':
+                    printChar(letterChars[25], scale, p, x, y);
+                    break;
+            }
         }
     }
 

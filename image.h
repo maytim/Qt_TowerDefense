@@ -35,8 +35,12 @@ class Image : public GameObject
 {
 public:
     //Constructors
-    Image(QString filePath) : GameObject(filePath) {}
+    Image(QString filePath) : GameObject(filePath) , fpath(filePath){}
     Image(QString filePath, qreal scale) : GameObject(filePath, scale) {}
+
+    Image* scaledCopy(double scale);
+private:
+    QString fpath;
 };
 
 #endif // IMAGE_H
