@@ -34,7 +34,7 @@
 #include <QWidget>
 
 //Enum for all of the different game states
-enum State {MENU, INGAME, PAUSED, HELP};
+enum State {MENU, INGAME, CLEARED, PAUSED, HELP};
 
 /*
     @class Game
@@ -92,9 +92,10 @@ private:
     void cleanInGame();
 
     //A helper function to draw the scores using Images
-    void paintNum(int,QPainter&,int,int);
-    void paintLetter(std::string,double,QPainter&,int,int,bool);
+    void paintChar(std::string,double,QPainter&,int,int,bool);
     void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
+    Image* mergeChars(std::string,double,bool);
+    void appendChar(Image* character, double scale, Image* i);
 
     //Spawning function
     void spawner();
@@ -152,6 +153,10 @@ private:
 
     //Index to navigate the help images
     int helpIndex;
+
+
+    //Temp
+    Image* temp_start;
 };
 
 #endif // GAME_H

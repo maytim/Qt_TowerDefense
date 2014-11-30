@@ -170,7 +170,11 @@ public:
 
     //rect and image getter functions
     QRect* getRect(){ return rect; }
-    QImage getImage() const { return *image; }
+    QImage* getImage() { return image; }
+    QRect getRectV() const { return *rect; }
+    QImage getImageV() const { return *image; }
+    void setImage(QImage i) { image = new QImage(i); }
+    void setRect(QRect r) { rect = new QRect(r); }
 private:
     //properties
     QImage* image;

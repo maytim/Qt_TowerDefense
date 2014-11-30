@@ -35,10 +35,13 @@ class Image : public GameObject
 {
 public:
     //Constructors
-    Image(QString filePath) : GameObject(filePath) , fpath(filePath){}
+    Image(QString filePath) : GameObject(filePath) , fpath(filePath) {}
     Image(QString filePath, qreal scale) : GameObject(filePath, scale) {}
+    Image(const Image& i);
+    Image(){ setRect(QRect(0,0,0,11));}
 
     Image* scaledCopy(double scale);
+    void append(Image* i);
 private:
     QString fpath;
 };
