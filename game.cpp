@@ -43,6 +43,7 @@ Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curT
     setMouseTracking(true);
 
     //Load up the components for each game state
+    fillCharReferences();
     loadMenu();
     loadHelp();
     loadPause();
@@ -97,9 +98,11 @@ void Game::paintEvent(QPaintEvent *event){
         case INGAME:
             //Draw the score and wave Images
             paintChar(std::to_string(getWave()),1,painter,10,10+wave_title->getRect()->height(),false);
-            paintChar("wave",1,painter,wave_title->getRect()->x(),wave_title->getRect()->y(), false);
-            paintChar(std::to_string(getScore()),1,painter,width()-10-score_visual->getRect()->width(), 10+score_title->getRect()->height(),false);
-            paintChar("score",1,painter,score_title->getRect()->x(),score_title->getRect()->y(), false);
+            //paintChar("wave",1,painter,wave_title->getRect()->x(),wave_title->getRect()->y(), false);
+            painter.drawImage(*score_title->getRect(),*score_title->getImage());
+            paintChar(std::to_string(getScore()),1,painter,width()-std::to_string(getScore()).length()*6-5, 10+score_title->getRect()->height(),false);
+            //paintChar("score",1,painter,score_title->getRect()->x(),score_title->getRect()->y(), false);
+            painter.drawImage(*wave_title->getRect(),*wave_title->getImage());
 
             //Tower Builder Menu
             for(const auto o : towerOptions)
@@ -469,14 +472,12 @@ void Game::clearGame(){
 //A function to load the menu components
 void Game::loadMenu(){
     //load the corresponding images for each of the components
-    title_line1 = new Image(CONSTANTS::TITLE_PATH_1, 0.125);
-    //title_line1 = mergeChars("tower",0.125,false);
-    title_line2 = new Image(CONSTANTS::TITLE_PATH_2, 0.125);
-    //title_line2 = mergeChars("defense",0.125,false);
-    start_button = new Button(CONSTANTS::START_PATH, CONSTANTS::START_H_PATH, 0.25);
+    title_line1 = mergeChars("tower",0.125,false);
+    title_line2 = mergeChars("defense",0.125,false);
 
-    help_button = new Button(CONSTANTS::HELP_PATH, CONSTANTS::HELP_H_PATH, 0.25);
-    quit_button = new Button(CONSTANTS::QUIT_PATH, CONSTANTS::QUIT_H_PATH, 0.25);
+    start_button = new Button(mergeChars("start",0.25,false), mergeChars("start",0.25,true));
+    help_button = new Button(mergeChars("help",0.25,false), mergeChars("help",0.25,true));
+    quit_button = new Button(mergeChars("quit",0.25,false), mergeChars("quit",0.25,true));
 
     //position the components
     title_line1->getRect()->translate( (width()-title_line1->getRect()->width())/2 , CONSTANTS::MARGIN_TOP );
@@ -484,6 +485,7 @@ void Game::loadMenu(){
     start_button->getRect()->translate( (width()-start_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height());
     help_button->getRect()->translate( (width()-help_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height());
     quit_button->getRect()->translate( (width()-quit_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height() + help_button->getRect()->height());
+
 }
 
 //A function to delete the menu components
@@ -498,23 +500,28 @@ void Game::cleanMenu(){
 
 //A function to load the ingame components
 void Game::loadInGame(){
-    //    temp_start = mergeChars("starting",0.25,false);
-
     //load the corresponding images for each of the components
-    score_visual = new Image(CONSTANTS::SCORE_PATH, 0.5);
-    //score_visual = mergeChars(std::to_string(getScore()), 0.5, false);
-    score_title = new Image(CONSTANTS::SCORE_TITLE_PATH, 1);
-    //score_title = mergeChars("score",1,false);
-    wave_visual = new Image(CONSTANTS::SCORE_PATH, 0.5);
-    //wave_visual = mergeChars(std::to_string(getWave()),0.5,false);
-    wave_title = new Image(CONSTANTS::WAVE_TITLE_PATH, 1);
-    //wave_title = mergeChars("wave",1,false);
+    score_title = mergeChars("score",1,false);
+    wave_title = mergeChars("wave",1,false);
+
     tileHighlight = new Image(CONSTANTS::HIGHLIGHT_TILE);
     towerOptions.push_back(new Image(CONSTANTS::TOWER_FIRE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
     towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
 
+    //position the components
+    wave_title->getRect()->translate(10,10);
+    score_title->getRect()->translate(width()-score_title->getRect()->width()-5, 10);
+    towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
+    towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
+    towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
+
+    buildMap();
+    createNavigationPath();
+}
+
+void Game::fillCharReferences(){
     numChars.push_back(new Image(CONSTANTS::CHAR_0));
     numChars.push_back(new Image(CONSTANTS::CHAR_1));
     numChars.push_back(new Image(CONSTANTS::CHAR_2));
@@ -580,25 +587,13 @@ void Game::loadInGame(){
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Y_ACT));
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Z_ACT));
 
-    //position the components
-    wave_title->getRect()->translate(10,10);
-    wave_visual->getRect()->translate(10,10+wave_title->getRect()->height());
-    score_title->getRect()->translate(width()-10-score_visual->getRect()->width(), 10);
-    score_visual->getRect()->translate(width()-10-score_visual->getRect()->width(), 10+score_title->getRect()->height());
-    towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
-    towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
-    towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
-
-    buildMap();
-    createNavigationPath();
+    specialChars.push_back(new Image(CONSTANTS::CHAR_SPACE));
 }
 
 //A function to delete the ingame components
 void Game::cleanInGame(){
     //Delete all of the InGame components
-    delete score_visual;
     delete score_title;
-    delete wave_visual;
     delete wave_title;
     delete tileHighlight;
     for(auto& t : map)
@@ -612,8 +607,9 @@ void Game::cleanInGame(){
 //A function to load the pause components
 void Game::loadPause(){
     //load the corresponding images for each of the components
-    pauseButtons.push_back(new Button(CONSTANTS::RESUME_PATH, CONSTANTS::RESUME_H_PATH, 0.25));
-    pauseButtons.push_back(new Button(CONSTANTS::MAINMENU_PATH, CONSTANTS::MAINMENU_H_PATH, 0.25));
+    pauseButtons.push_back(new Button(mergeChars("resume",0.25,false), mergeChars("resume",0.25,true)));
+    //pauseButtons.push_back(new Button(CONSTANTS::MAINMENU_PATH, CONSTANTS::MAINMENU_H_PATH, 0.25));
+    pauseButtons.push_back(new Button(mergeChars("main menu",0.25,false), mergeChars("main menu",0.25,true)));
 
     //position the components
     pauseButtons[0]->getRect()->translate( (width()-pauseButtons[0]->getRect()->width())/2 , CONSTANTS::MARGIN_TOP);
@@ -865,6 +861,9 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
             case 'z':
                 appendChar(letterCharsAct[25], scale, image);
                 break;
+            case ' ':
+                appendChar(specialChars[0], scale, image);
+                break;
         }
         }
         else{
@@ -976,6 +975,9 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
                     break;
                 case '9':
                     appendChar(numChars[9], scale, image);
+                    break;
+                case ' ':
+                    appendChar(specialChars[0], scale, image);
                     break;
             }
         }

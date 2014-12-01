@@ -134,6 +134,7 @@ namespace CONSTANTS{
     const QString CHAR_X_ACT = "C:/Qt/Projects/GameProject/characters/active/X.png";
     const QString CHAR_Y_ACT = "C:/Qt/Projects/GameProject/characters/active/Y.png";
     const QString CHAR_Z_ACT = "C:/Qt/Projects/GameProject/characters/active/Z.png";
+    const QString CHAR_SPACE = "C:/Qt/Projects/GameProject/characters/space.png";
     const int MARGIN_TOP = 64;
 
     //enemy constants

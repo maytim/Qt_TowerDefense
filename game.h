@@ -80,6 +80,7 @@ public:
     QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 private:
     //Functions to setup the game states' componenets
+    void fillCharReferences();
     void loadMenu();
     void loadHelp();
     void loadPause();
@@ -140,6 +141,7 @@ private:
     std::vector<Image*> numChars;
     std::vector<Image*> letterChars;
     std::vector<Image*> letterCharsAct;
+    std::vector<Image*> specialChars;
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;

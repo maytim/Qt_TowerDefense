@@ -38,6 +38,7 @@ class Button : public Image
 public:
     //Constructor
     Button(QString filePath, QString h_filePath, qreal scale);
+    Button(Image* passive, Image* active);
 
     //Setter for the active property
     void setActive(bool a){ active = a; }

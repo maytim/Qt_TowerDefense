@@ -22,7 +22,8 @@ void Image::append(Image *i){
     else{
         QImage* image = new QImage(getImage()->width()+i->getImage()->width(),
                                  getImage()->height(),
-                                 QImage::Format_RGB32);
+                                 QImage::Format_ARGB32_Premultiplied);
+        image->fill(qRgba(0,0,0,0));
         QPainter painter;
         painter.begin(image);
         painter.drawImage(0,0,*getImage());
@@ -30,5 +31,6 @@ void Image::append(Image *i){
         painter.end();
         delete getImage();
         setImage(*image);
+        setRect(image->rect());
     }
 }
