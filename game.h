@@ -87,6 +87,7 @@ private:
     void loadInGame();
 
     //Functons to delete the game states' components
+    void cleanCharReferences();
     void cleanMenu();
     void cleanHelp();
     void cleanPause();
@@ -100,6 +101,8 @@ private:
 
     //Spawning function
     void spawner();
+
+    void newWave();
 
     WaveGenerator wave_generator;
 
@@ -138,7 +141,6 @@ private:
     Image* score_visual;
     Image* score_title;
     Image* tileHighlight;
-    std::vector<Image*> numChars;
     std::vector<Image*> letterChars;
     std::vector<Image*> letterCharsAct;
     std::vector<Image*> specialChars;

@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 
     Game w;
     w.setWindowTitle("Tower Defense");
+    w.setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
     w.show();
 
     return a.exec();

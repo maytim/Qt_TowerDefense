@@ -11,6 +11,7 @@ void WaveGenerator::clearSpawnList(){
 }
 
 std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLocation){
+    qDebug() << "spawning wave: " << wave;
     //Start by clearing spawnList
     clearSpawnList();
 
@@ -24,17 +25,17 @@ std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLoca
     do{
         int token = unif(generator);
         switch( token ){
-            case ENEMY::Normal:
+            case 0:
                 if(spawnTokens >= 1){
                     qDebug() << "Normal Spawn";
-                    spawnList.push_back(new Enemy(spawnLocation));
+                    spawnList.push_back(new Enemy(ENEMY::NORMAL, spawnLocation));
                     spawnTokens -= 1;
                 }
                 break;
-            case ENEMY::Badass:
+            case 1:
                 if(spawnTokens >= 3){
                     qDebug() << "Badass Spawn";
-                    spawnList.push_back(new Enemy(spawnLocation));
+                    spawnList.push_back(new Enemy(ENEMY::BADASS, spawnLocation));
                     spawnTokens -= 3;
                 }
                 break;

@@ -37,7 +37,7 @@
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(1), score_value(10) , enemyCount(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) , enemyCount(0)
 {
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
@@ -62,6 +62,14 @@ Game::~Game()
     cleanInGame();
     for(auto& e : enemies)
         delete e;
+    cleanCharReferences();
+}
+
+void Game::cleanCharReferences(){
+    for(auto& c : letterChars)
+        delete c;
+    for(auto& c : letterCharsAct)
+        delete c;
 }
 
 /*
@@ -82,26 +90,24 @@ void Game::paintEvent(QPaintEvent *event){
 
             //Then for each of the buttons check to display active or passive image
             if(start_button->isActive())
-                paintChar("start",0.25,painter,start_button->getRect()->x(),start_button->getRect()->y(), true);
+                painter.drawImage(*start_button->getRect(), start_button->getActiveImage());
             else
-                paintChar("start",0.25,painter,start_button->getRect()->x(),start_button->getRect()->y(), false);
+                painter.drawImage(*start_button->getRect(), *start_button->getImage());
 
             if(help_button->isActive())
-                paintChar("help",0.25,painter,help_button->getRect()->x(),help_button->getRect()->y(), true);
+                painter.drawImage(*help_button->getRect(), help_button->getActiveImage());
             else
-                paintChar("help",0.25,painter,help_button->getRect()->x(),help_button->getRect()->y(), false);
+                painter.drawImage(*help_button->getRect(), *help_button->getImage());
             if(quit_button->isActive())
-                paintChar("quit",0.25,painter,quit_button->getRect()->x(),quit_button->getRect()->y(), true);
+                painter.drawImage(*quit_button->getRect(), quit_button->getActiveImage());
             else
-                paintChar("quit",0.25,painter,quit_button->getRect()->x(),quit_button->getRect()->y(), false);
+                painter.drawImage(*quit_button->getRect(), *quit_button->getImage());
             break;
         case INGAME:
             //Draw the score and wave Images
             paintChar(std::to_string(getWave()),1,painter,10,10+wave_title->getRect()->height(),false);
-            //paintChar("wave",1,painter,wave_title->getRect()->x(),wave_title->getRect()->y(), false);
             painter.drawImage(*score_title->getRect(),*score_title->getImage());
             paintChar(std::to_string(getScore()),1,painter,width()-std::to_string(getScore()).length()*6-5, 10+score_title->getRect()->height(),false);
-            //paintChar("score",1,painter,score_title->getRect()->x(),score_title->getRect()->y(), false);
             painter.drawImage(*wave_title->getRect(),*wave_title->getImage());
 
             //Tower Builder Menu
@@ -128,11 +134,8 @@ void Game::paintEvent(QPaintEvent *event){
                 painter.drawImage(*t->getRect(), *t->getImage());
             break;
         case CLEARED:
-            paintChar("wave",0.25,painter,100,100,false);
-            paintChar(std::to_string(getWave()),0.25,painter,100+6*4*4,100,false);
-            paintChar("cleared",0.25,painter,100+6*4*4+std::to_string(getWave()).length()*6*4,100,false);
-
-        break;
+            paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,100,100,false);
+            break;
 
         case PAUSED:
             //For each of the buttons check to display active or passive image
@@ -193,7 +196,7 @@ void Game::timerEvent(QTimerEvent *event){
 void Game::generateEnemy(){
     killTimer(spawnTimer);
     if(enemyCount < 5){
-        enemies.push_back(new Enemy(navPath[0]));
+        enemies.push_back(new Enemy(ENEMY::NORMAL, navPath[0]));
         enemyCount++;
         spawnTimer = startTimer(2000);
     }    
@@ -439,19 +442,36 @@ void Game::mousePressEvent(QMouseEvent *event){
     @brief A function to set up a new tower defense game
 */
 void Game::newGame(){
+    qDebug() << "New game";
     //Delete any existing data
     clearGame();
-    //load new data
-    spawnList = wave_generator.generateSpawnList( getWave(), navPath[0] );
+    //load new wave data
+    newWave();
+    //wave_value = 1;
     score_value = 10;
-    enemyCount = spawnList.size();
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
     collisionTimer = startTimer(100);
     //Start the timer that will update the enemies positions
     moveTimer = startTimer(25);
-    //Start the timer that will spawn enemies
+}
+
+void Game::newWave(){
+    //New wave
+    updateWave();
+    //Clear enemy list
+    for(auto& e : enemies)
+        delete e;
+    enemies.clear();
+
+    //Clear spawnList
+    spawnList.clear();
+
+    //New spawnList
+    spawnList = wave_generator.generateSpawnList(getWave(), navPath[0]);
+    enemyCount = spawnList.size();
+
     spawnTimer = startTimer(2000);
 }
 
@@ -522,17 +542,16 @@ void Game::loadInGame(){
 }
 
 void Game::fillCharReferences(){
-    numChars.push_back(new Image(CONSTANTS::CHAR_0));
-    numChars.push_back(new Image(CONSTANTS::CHAR_1));
-    numChars.push_back(new Image(CONSTANTS::CHAR_2));
-    numChars.push_back(new Image(CONSTANTS::CHAR_3));
-    numChars.push_back(new Image(CONSTANTS::CHAR_4));
-    numChars.push_back(new Image(CONSTANTS::CHAR_5));
-    numChars.push_back(new Image(CONSTANTS::CHAR_6));
-    numChars.push_back(new Image(CONSTANTS::CHAR_7));
-    numChars.push_back(new Image(CONSTANTS::CHAR_8));
-    numChars.push_back(new Image(CONSTANTS::CHAR_9));
-
+    letterChars.push_back(new Image(CONSTANTS::CHAR_0));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_1));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_2));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_3));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_4));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_5));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_6));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_7));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_8));
+    letterChars.push_back(new Image(CONSTANTS::CHAR_9));
     letterChars.push_back(new Image(CONSTANTS::CHAR_A));
     letterChars.push_back(new Image(CONSTANTS::CHAR_B));
     letterChars.push_back(new Image(CONSTANTS::CHAR_C));
@@ -560,6 +579,16 @@ void Game::fillCharReferences(){
     letterChars.push_back(new Image(CONSTANTS::CHAR_Y));
     letterChars.push_back(new Image(CONSTANTS::CHAR_Z));
 
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_0_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_1_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_2_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_3_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_4_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_5_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_6_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_7_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_8_ACT));
+    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_9_ACT));
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_A_ACT));
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_B_ACT));
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_C_ACT));
@@ -600,15 +629,12 @@ void Game::cleanInGame(){
         delete t;
     for(auto& o : towerOptions)
         delete o;
-    for(auto& c : numChars)
-        delete c;
 }
 
 //A function to load the pause components
 void Game::loadPause(){
     //load the corresponding images for each of the components
     pauseButtons.push_back(new Button(mergeChars("resume",0.25,false), mergeChars("resume",0.25,true)));
-    //pauseButtons.push_back(new Button(CONSTANTS::MAINMENU_PATH, CONSTANTS::MAINMENU_H_PATH, 0.25));
     pauseButtons.push_back(new Button(mergeChars("main menu",0.25,false), mergeChars("main menu",0.25,true)));
 
     //position the components
@@ -628,7 +654,7 @@ void Game::loadHelp(){
     //load the corresponding images for each of the components
     arrows.push_back(new Button(CONSTANTS::LEFT_PATH, CONSTANTS::LEFT_H_PATH, 0.25));
     arrows.push_back(new Button(CONSTANTS::RIGHT_PATH, CONSTANTS::RIGHT_H_PATH, 0.25));
-    arrows.push_back(new Button(CONSTANTS::BACK_PATH, CONSTANTS::BACK_H_PATH, 0.5));
+    arrows.push_back(new Button(mergeChars("back",0.5,false), mergeChars("back",0.5,true)));
 
     helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_1));
     helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_2));
@@ -738,24 +764,8 @@ void Game::raycast(){
                     //End wave
                     if(enemyCount == 0){
                         state = CLEARED;
-                        /*
                         //New wave
-                        updateWave();
-
-                        //Clear enemy list
-                        for(auto& e : enemies)
-                            delete e;
-                        enemies.clear();
-
-                        //Clear spawnList
-                        spawnList.clear();
-
-                        //New spawnList
-                        spawnList = wave_generator.generateSpawnList(getWave(), navPath[0]);
-                        enemyCount = spawnList.size();
-
-                        spawnTimer = startTimer(2000);
-                        */
+                        newWave();
                     }
                 }
                 break;
@@ -783,83 +793,113 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
     for(size_t i = 0; i < word.length(); i++){
         if(active){
             switch(word[i]){
-            case 'a':
+            case '0':
                 appendChar(letterCharsAct[0], scale, image);
                 break;
-            case 'b':
+            case '1':
                 appendChar(letterCharsAct[1], scale, image);
                 break;
-            case 'c':
+            case '2':
                 appendChar(letterCharsAct[2], scale, image);
                 break;
-            case 'd':
+            case '3':
                 appendChar(letterCharsAct[3], scale, image);
                 break;
-            case 'e':
+            case '4':
                 appendChar(letterCharsAct[4], scale, image);
                 break;
-            case 'f':
+            case '5':
                 appendChar(letterCharsAct[5], scale, image);
                 break;
-            case 'g':
+            case '6':
                 appendChar(letterCharsAct[6], scale, image);
                 break;
-            case 'h':
+            case '7':
                 appendChar(letterCharsAct[7], scale, image);
                 break;
-            case 'i':
+            case '8':
                 appendChar(letterCharsAct[8], scale, image);
                 break;
-            case 'j':
+            case '9':
                 appendChar(letterCharsAct[9], scale, image);
                 break;
-            case 'k':
+            case 'a':
                 appendChar(letterCharsAct[10], scale, image);
                 break;
-            case 'l':
+            case 'b':
                 appendChar(letterCharsAct[11], scale, image);
                 break;
-            case 'm':
+            case 'c':
                 appendChar(letterCharsAct[12], scale, image);
                 break;
-            case 'n':
+            case 'd':
                 appendChar(letterCharsAct[13], scale, image);
                 break;
-            case 'o':
+            case 'e':
                 appendChar(letterCharsAct[14], scale, image);
                 break;
-            case 'p':
+            case 'f':
                 appendChar(letterCharsAct[15], scale, image);
                 break;
-            case 'q':
+            case 'g':
                 appendChar(letterCharsAct[16], scale, image);
                 break;
-            case 'r':
+            case 'h':
                 appendChar(letterCharsAct[17], scale, image);
                 break;
-            case 's':
+            case 'i':
                 appendChar(letterCharsAct[18], scale, image);
                 break;
-            case 't':
+            case 'j':
                 appendChar(letterCharsAct[19], scale, image);
                 break;
-            case 'u':
+            case 'k':
                 appendChar(letterCharsAct[20], scale, image);
                 break;
-            case 'v':
+            case 'l':
                 appendChar(letterCharsAct[21], scale, image);
                 break;
-            case 'w':
+            case 'm':
                 appendChar(letterCharsAct[22], scale, image);
                 break;
-            case 'x':
+            case 'n':
                 appendChar(letterCharsAct[23], scale, image);
                 break;
-            case 'y':
+            case 'o':
                 appendChar(letterCharsAct[24], scale, image);
                 break;
-            case 'z':
+            case 'p':
                 appendChar(letterCharsAct[25], scale, image);
+                break;
+            case 'q':
+                appendChar(letterCharsAct[26], scale, image);
+                break;
+            case 'r':
+                appendChar(letterCharsAct[27], scale, image);
+                break;
+            case 's':
+                appendChar(letterCharsAct[28], scale, image);
+                break;
+            case 't':
+                appendChar(letterCharsAct[29], scale, image);
+                break;
+            case 'u':
+                appendChar(letterCharsAct[30], scale, image);
+                break;
+            case 'v':
+                appendChar(letterCharsAct[31], scale, image);
+                break;
+            case 'w':
+                appendChar(letterCharsAct[32], scale, image);
+                break;
+            case 'x':
+                appendChar(letterCharsAct[33], scale, image);
+                break;
+            case 'y':
+                appendChar(letterCharsAct[34], scale, image);
+                break;
+            case 'z':
+                appendChar(letterCharsAct[35], scale, image);
                 break;
             case ' ':
                 appendChar(specialChars[0], scale, image);
@@ -868,113 +908,113 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
         }
         else{
             switch(word[i]){
-                case 'a':
+                case '0':
                     appendChar(letterChars[0], scale, image);
                     break;
-                case 'b':
+                case '1':
                     appendChar(letterChars[1], scale, image);
                     break;
-                case 'c':
+                case '2':
                     appendChar(letterChars[2], scale, image);
                     break;
-                case 'd':
+                case '3':
                     appendChar(letterChars[3], scale, image);
                     break;
-                case 'e':
+                case '4':
                     appendChar(letterChars[4], scale, image);
                     break;
-                case 'f':
+                case '5':
                     appendChar(letterChars[5], scale, image);
                     break;
-                case 'g':
+                case '6':
                     appendChar(letterChars[6], scale, image);
                     break;
-                case 'h':
+                case '7':
                     appendChar(letterChars[7], scale, image);
                     break;
-                case 'i':
+                case '8':
                     appendChar(letterChars[8], scale, image);
                     break;
-                case 'j':
+                case '9':
                     appendChar(letterChars[9], scale, image);
                     break;
-                case 'k':
+                case 'a':
                     appendChar(letterChars[10], scale, image);
                     break;
-                case 'l':
+                case 'b':
                     appendChar(letterChars[11], scale, image);
                     break;
-                case 'm':
+                case 'c':
                     appendChar(letterChars[12], scale, image);
                     break;
-                case 'n':
+                case 'd':
                     appendChar(letterChars[13], scale, image);
                     break;
-                case 'o':
+                case 'e':
                     appendChar(letterChars[14], scale, image);
                     break;
-                case 'p':
+                case 'f':
                     appendChar(letterChars[15], scale, image);
                     break;
-                case 'q':
+                case 'g':
                     appendChar(letterChars[16], scale, image);
                     break;
-                case 'r':
+                case 'h':
                     appendChar(letterChars[17], scale, image);
                     break;
-                case 's':
+                case 'i':
                     appendChar(letterChars[18], scale, image);
                     break;
-                case 't':
+                case 'j':
                     appendChar(letterChars[19], scale, image);
                     break;
-                case 'u':
+                case 'k':
                     appendChar(letterChars[20], scale, image);
                     break;
-                case 'v':
+                case 'l':
                     appendChar(letterChars[21], scale, image);
                     break;
-                case 'w':
+                case 'm':
                     appendChar(letterChars[22], scale, image);
                     break;
-                case 'x':
+                case 'n':
                     appendChar(letterChars[23], scale, image);
                     break;
-                case 'y':
+                case 'o':
                     appendChar(letterChars[24], scale, image);
                     break;
-                case 'z':
+                case 'p':
                     appendChar(letterChars[25], scale, image);
                     break;
-                case '0':
-                    appendChar(numChars[0], scale, image);
+                case 'q':
+                    appendChar(letterChars[26], scale, image);
                     break;
-                case '1':
-                    appendChar(numChars[1], scale, image);
+                case 'r':
+                    appendChar(letterChars[27], scale, image);
                     break;
-                case '2':
-                    appendChar(numChars[2], scale, image);
+                case 's':
+                    appendChar(letterChars[28], scale, image);
                     break;
-                case '3':
-                    appendChar(numChars[3], scale, image);
+                case 't':
+                    appendChar(letterChars[29], scale, image);
                     break;
-                case '4':
-                    appendChar(numChars[4], scale, image);
+                case 'u':
+                    appendChar(letterChars[30], scale, image);
                     break;
-                case '5':
-                    appendChar(numChars[5], scale, image);
+                case 'v':
+                    appendChar(letterChars[31], scale, image);
                     break;
-                case '6':
-                    appendChar(numChars[6], scale, image);
+                case 'w':
+                    appendChar(letterChars[32], scale, image);
                     break;
-                case '7':
-                    appendChar(numChars[7], scale, image);
+                case 'x':
+                    appendChar(letterChars[33], scale, image);
                     break;
-                case '8':
-                    appendChar(numChars[8], scale, image);
+                case 'y':
+                    appendChar(letterChars[34], scale, image);
                     break;
-                case '9':
-                    appendChar(numChars[9], scale, image);
+                case 'z':
+                    appendChar(letterChars[35], scale, image);
                     break;
                 case ' ':
                     appendChar(specialChars[0], scale, image);
@@ -1005,195 +1045,231 @@ void Game::paintChar(std::string word, double scale, QPainter& p, int x, int y, 
     for(size_t i = 0; i < word.length(); i++){
         if(active){
             switch(word[i]){
-            case 'a':
+            case '0':
                 printChar(letterCharsAct[0], scale, p, x, y);
                 break;
-            case 'b':
+            case '1':
                 printChar(letterCharsAct[1], scale, p, x, y);
                 break;
-            case 'c':
+            case '2':
                 printChar(letterCharsAct[2], scale, p, x, y);
                 break;
-            case 'd':
+            case '3':
                 printChar(letterCharsAct[3], scale, p, x, y);
                 break;
-            case 'e':
+            case '4':
                 printChar(letterCharsAct[4], scale, p, x, y);
                 break;
-            case 'f':
+            case '5':
                 printChar(letterCharsAct[5], scale, p, x, y);
                 break;
-            case 'g':
+            case '6':
                 printChar(letterCharsAct[6], scale, p, x, y);
                 break;
-            case 'h':
+            case '7':
                 printChar(letterCharsAct[7], scale, p, x, y);
                 break;
-            case 'i':
+            case '8':
                 printChar(letterCharsAct[8], scale, p, x, y);
                 break;
-            case 'j':
+            case '9':
                 printChar(letterCharsAct[9], scale, p, x, y);
                 break;
-            case 'k':
+            case 'a':
                 printChar(letterCharsAct[10], scale, p, x, y);
                 break;
-            case 'l':
+            case 'b':
                 printChar(letterCharsAct[11], scale, p, x, y);
                 break;
-            case 'm':
+            case 'c':
                 printChar(letterCharsAct[12], scale, p, x, y);
                 break;
-            case 'n':
+            case 'd':
                 printChar(letterCharsAct[13], scale, p, x, y);
                 break;
-            case 'o':
+            case 'e':
                 printChar(letterCharsAct[14], scale, p, x, y);
                 break;
-            case 'p':
+            case 'f':
                 printChar(letterCharsAct[15], scale, p, x, y);
                 break;
-            case 'q':
+            case 'g':
                 printChar(letterCharsAct[16], scale, p, x, y);
                 break;
-            case 'r':
+            case 'h':
                 printChar(letterCharsAct[17], scale, p, x, y);
                 break;
-            case 's':
+            case 'i':
                 printChar(letterCharsAct[18], scale, p, x, y);
                 break;
-            case 't':
+            case 'j':
                 printChar(letterCharsAct[19], scale, p, x, y);
                 break;
-            case 'u':
+            case 'k':
                 printChar(letterCharsAct[20], scale, p, x, y);
                 break;
-            case 'v':
+            case 'l':
                 printChar(letterCharsAct[21], scale, p, x, y);
                 break;
-            case 'w':
+            case 'm':
                 printChar(letterCharsAct[22], scale, p, x, y);
                 break;
-            case 'x':
+            case 'n':
                 printChar(letterCharsAct[23], scale, p, x, y);
                 break;
-            case 'y':
+            case 'o':
                 printChar(letterCharsAct[24], scale, p, x, y);
                 break;
-            case 'z':
+            case 'p':
                 printChar(letterCharsAct[25], scale, p, x, y);
+                break;
+            case 'q':
+                printChar(letterCharsAct[26], scale, p, x, y);
+                break;
+            case 'r':
+                printChar(letterCharsAct[27], scale, p, x, y);
+                break;
+            case 's':
+                printChar(letterCharsAct[28], scale, p, x, y);
+                break;
+            case 't':
+                printChar(letterCharsAct[29], scale, p, x, y);
+                break;
+            case 'u':
+                printChar(letterCharsAct[30], scale, p, x, y);
+                break;
+            case 'v':
+                printChar(letterCharsAct[31], scale, p, x, y);
+                break;
+            case 'w':
+                printChar(letterCharsAct[32], scale, p, x, y);
+                break;
+            case 'x':
+                printChar(letterCharsAct[33], scale, p, x, y);
+                break;
+            case 'y':
+                printChar(letterCharsAct[34], scale, p, x, y);
+                break;
+            case 'z':
+                printChar(letterCharsAct[35], scale, p, x, y);
+                break;
+            case ' ':
+                printChar(specialChars[0], scale, p, x, y);
                 break;
         }
         }
         else{
             switch(word[i]){
-                case 'a':
+                case '0':
                     printChar(letterChars[0], scale, p, x, y);
                     break;
-                case 'b':
+                case '1':
                     printChar(letterChars[1], scale, p, x, y);
                     break;
-                case 'c':
+                case '2':
                     printChar(letterChars[2], scale, p, x, y);
                     break;
-                case 'd':
+                case '3':
                     printChar(letterChars[3], scale, p, x, y);
                     break;
-                case 'e':
+                case '4':
                     printChar(letterChars[4], scale, p, x, y);
                     break;
-                case 'f':
+                case '5':
                     printChar(letterChars[5], scale, p, x, y);
                     break;
-                case 'g':
+                case '6':
                     printChar(letterChars[6], scale, p, x, y);
                     break;
-                case 'h':
+                case '7':
                     printChar(letterChars[7], scale, p, x, y);
                     break;
-                case 'i':
+                case '8':
                     printChar(letterChars[8], scale, p, x, y);
                     break;
-                case 'j':
+                case '9':
                     printChar(letterChars[9], scale, p, x, y);
                     break;
-                case 'k':
+                case 'a':
                     printChar(letterChars[10], scale, p, x, y);
                     break;
-                case 'l':
+                case 'b':
                     printChar(letterChars[11], scale, p, x, y);
                     break;
-                case 'm':
+                case 'c':
                     printChar(letterChars[12], scale, p, x, y);
                     break;
-                case 'n':
+                case 'd':
                     printChar(letterChars[13], scale, p, x, y);
                     break;
-                case 'o':
+                case 'e':
                     printChar(letterChars[14], scale, p, x, y);
                     break;
-                case 'p':
+                case 'f':
                     printChar(letterChars[15], scale, p, x, y);
                     break;
-                case 'q':
+                case 'g':
                     printChar(letterChars[16], scale, p, x, y);
                     break;
-                case 'r':
+                case 'h':
                     printChar(letterChars[17], scale, p, x, y);
                     break;
-                case 's':
+                case 'i':
                     printChar(letterChars[18], scale, p, x, y);
                     break;
-                case 't':
+                case 'j':
                     printChar(letterChars[19], scale, p, x, y);
                     break;
-                case 'u':
+                case 'k':
                     printChar(letterChars[20], scale, p, x, y);
                     break;
-                case 'v':
+                case 'l':
                     printChar(letterChars[21], scale, p, x, y);
                     break;
-                case 'w':
+                case 'm':
                     printChar(letterChars[22], scale, p, x, y);
                     break;
-                case 'x':
+                case 'n':
                     printChar(letterChars[23], scale, p, x, y);
                     break;
-                case 'y':
+                case 'o':
                     printChar(letterChars[24], scale, p, x, y);
                     break;
-                case 'z':
+                case 'p':
                     printChar(letterChars[25], scale, p, x, y);
                     break;
-                case '0':
-                    printChar(numChars[0], scale, p, x, y);
+                case 'q':
+                    printChar(letterChars[26], scale, p, x, y);
                     break;
-                case '1':
-                    printChar(numChars[1], scale, p, x, y);
+                case 'r':
+                    printChar(letterChars[27], scale, p, x, y);
                     break;
-                case '2':
-                    printChar(numChars[2], scale, p, x, y);
+                case 's':
+                    printChar(letterChars[28], scale, p, x, y);
                     break;
-                case '3':
-                    printChar(numChars[3], scale, p, x, y);
+                case 't':
+                    printChar(letterChars[29], scale, p, x, y);
                     break;
-                case '4':
-                    printChar(numChars[4], scale, p, x, y);
+                case 'u':
+                    printChar(letterChars[30], scale, p, x, y);
                     break;
-                case '5':
-                    printChar(numChars[5], scale, p, x, y);
+                case 'v':
+                    printChar(letterChars[31], scale, p, x, y);
                     break;
-                case '6':
-                    printChar(numChars[6], scale, p, x, y);
+                case 'w':
+                    printChar(letterChars[32], scale, p, x, y);
                     break;
-                case '7':
-                    printChar(numChars[7], scale, p, x, y);
+                case 'x':
+                    printChar(letterChars[33], scale, p, x, y);
                     break;
-                case '8':
-                    printChar(numChars[8], scale, p, x, y);
+                case 'y':
+                    printChar(letterChars[34], scale, p, x, y);
                     break;
-                case '9':
-                    printChar(numChars[9], scale, p, x, y);
+                case 'z':
+                    printChar(letterChars[35], scale, p, x, y);
+                    break;
+                case ' ':
+                    printChar(specialChars[0], scale, p, x, y);
                     break;
             }
         }

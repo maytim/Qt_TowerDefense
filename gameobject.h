@@ -30,35 +30,14 @@
 
 //Constants used throughout the application
 namespace CONSTANTS{
-    const int SCREEN_WIDTH = 300;
-    const int SCREEN_HEIGHT = 400;
-    
-    //waypoint constants
-    const int WAYPOINT_COUNT = 8;
-    const int WAYPOINTS[2*WAYPOINT_COUNT] = {258,50,258,114,82,114,98,242,210,226,194,146,274,162,258,306};
-    
+    const int SCREEN_WIDTH = 768;
+    const int SCREEN_HEIGHT = 512;
+        
     //GUI constants
-    const QString TITLE_PATH_1 = "C:/Qt/Projects/GameProject/tower.png";
-    const QString TITLE_PATH_2 = "C:/Qt/Projects/GameProject/defense.png";
-    const QString START_PATH = "C:/Qt/Projects/GameProject/start.png";
-    const QString START_H_PATH = "C:/Qt/Projects/GameProject/start_hover.png";
-    const QString HELP_PATH = "C:/Qt/Projects/GameProject/help.png";
-    const QString HELP_H_PATH = "C:/Qt/Projects/GameProject/help_hover.png";
-    const QString SCORE_PATH = "C:/Qt/Projects/GameProject/score.png";
-    const QString MAINMENU_PATH = "C:/Qt/Projects/GameProject/mainmenu.png";
-    const QString MAINMENU_H_PATH = "C:/Qt/Projects/GameProject/mainmenu_hover.png";
-    const QString QUIT_PATH = "C:/Qt/Projects/GameProject/quit.png";
-    const QString QUIT_H_PATH = "C:/Qt/Projects/GameProject/quit_hover.png";
-    const QString RESUME_PATH = "C:/Qt/Projects/GameProject/resume.png";
-    const QString RESUME_H_PATH = "C:/Qt/Projects/GameProject/resume_hover.png";
     const QString RIGHT_PATH = "C:/Qt/Projects/GameProject/rightarrow.png";
     const QString RIGHT_H_PATH = "C:/Qt/Projects/GameProject/rightarrow_hover.png";
     const QString LEFT_PATH = "C:/Qt/Projects/GameProject/leftarrow.png";
     const QString LEFT_H_PATH = "C:/Qt/Projects/GameProject/leftarrow_hover.png";
-    const QString BACK_PATH = "C:/Qt/Projects/GameProject/back.png";
-    const QString BACK_H_PATH = "C:/Qt/Projects/GameProject/back_hover.png";
-    const QString SCORE_TITLE_PATH = "C:/Qt/Projects/GameProject/score_title.png";
-    const QString WAVE_TITLE_PATH = "C:/Qt/Projects/GameProject/wave_title.png";
     const QString HELP_IMAGE_1 = "C:/Qt/Projects/GameProject/help1.png";
     const QString HELP_IMAGE_2 = "C:/Qt/Projects/GameProject/help2.png";
     const QString HELP_IMAGE_3 = "C:/Qt/Projects/GameProject/help3.png";
@@ -72,16 +51,16 @@ namespace CONSTANTS{
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
     const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
-    const QString CHAR_0 = "C:/Qt/Projects/GameProject/characters/0.png";
-    const QString CHAR_1 = "C:/Qt/Projects/GameProject/characters/1.png";
-    const QString CHAR_2 = "C:/Qt/Projects/GameProject/characters/2.png";
-    const QString CHAR_3 = "C:/Qt/Projects/GameProject/characters/3.png";
-    const QString CHAR_4 = "C:/Qt/Projects/GameProject/characters/4.png";
-    const QString CHAR_5 = "C:/Qt/Projects/GameProject/characters/5.png";
-    const QString CHAR_6 = "C:/Qt/Projects/GameProject/characters/6.png";
-    const QString CHAR_7 = "C:/Qt/Projects/GameProject/characters/7.png";
-    const QString CHAR_8 = "C:/Qt/Projects/GameProject/characters/8.png";
-    const QString CHAR_9 = "C:/Qt/Projects/GameProject/characters/9.png";
+    const QString CHAR_0 = "C:/Qt/Projects/GameProject/characters/normal/0.png";
+    const QString CHAR_1 = "C:/Qt/Projects/GameProject/characters/normal/1.png";
+    const QString CHAR_2 = "C:/Qt/Projects/GameProject/characters/normal/2.png";
+    const QString CHAR_3 = "C:/Qt/Projects/GameProject/characters/normal/3.png";
+    const QString CHAR_4 = "C:/Qt/Projects/GameProject/characters/normal/4.png";
+    const QString CHAR_5 = "C:/Qt/Projects/GameProject/characters/normal/5.png";
+    const QString CHAR_6 = "C:/Qt/Projects/GameProject/characters/normal/6.png";
+    const QString CHAR_7 = "C:/Qt/Projects/GameProject/characters/normal/7.png";
+    const QString CHAR_8 = "C:/Qt/Projects/GameProject/characters/normal/8.png";
+    const QString CHAR_9 = "C:/Qt/Projects/GameProject/characters/normal/9.png";
     const QString CHAR_A = "C:/Qt/Projects/GameProject/characters/normal/A.png";
     const QString CHAR_B = "C:/Qt/Projects/GameProject/characters/normal/B.png";
     const QString CHAR_C = "C:/Qt/Projects/GameProject/characters/normal/C.png";
@@ -108,6 +87,17 @@ namespace CONSTANTS{
     const QString CHAR_X = "C:/Qt/Projects/GameProject/characters/normal/X.png";
     const QString CHAR_Y = "C:/Qt/Projects/GameProject/characters/normal/Y.png";
     const QString CHAR_Z = "C:/Qt/Projects/GameProject/characters/normal/Z.png";
+
+    const QString CHAR_0_ACT = "C:/Qt/Projects/GameProject/characters/active/0.png";
+    const QString CHAR_1_ACT = "C:/Qt/Projects/GameProject/characters/active/1.png";
+    const QString CHAR_2_ACT = "C:/Qt/Projects/GameProject/characters/active/2.png";
+    const QString CHAR_3_ACT = "C:/Qt/Projects/GameProject/characters/active/3.png";
+    const QString CHAR_4_ACT = "C:/Qt/Projects/GameProject/characters/active/4.png";
+    const QString CHAR_5_ACT = "C:/Qt/Projects/GameProject/characters/active/5.png";
+    const QString CHAR_6_ACT = "C:/Qt/Projects/GameProject/characters/active/6.png";
+    const QString CHAR_7_ACT = "C:/Qt/Projects/GameProject/characters/active/7.png";
+    const QString CHAR_8_ACT = "C:/Qt/Projects/GameProject/characters/active/8.png";
+    const QString CHAR_9_ACT = "C:/Qt/Projects/GameProject/characters/active/9.png";
     const QString CHAR_A_ACT = "C:/Qt/Projects/GameProject/characters/active/A.png";
     const QString CHAR_B_ACT = "C:/Qt/Projects/GameProject/characters/active/B.png";
     const QString CHAR_C_ACT = "C:/Qt/Projects/GameProject/characters/active/C.png";
@@ -136,9 +126,6 @@ namespace CONSTANTS{
     const QString CHAR_Z_ACT = "C:/Qt/Projects/GameProject/characters/active/Z.png";
     const QString CHAR_SPACE = "C:/Qt/Projects/GameProject/characters/space.png";
     const int MARGIN_TOP = 64;
-
-    //enemy constants
-    const QString ENEMY_PATH = "C:/Qt/Projects/GameProject/enemy.png";
 
     //map constants
     const int TILE_ROW = 8;

@@ -34,12 +34,16 @@
 */
 
 //Types of enemies
-enum ENEMY{Normal, Badass};
+namespace ENEMY {
+    //enemy constants
+    const QString NORMAL = "C:/Qt/Projects/GameProject/enemy.png";
+    const QString BADASS = "C:/Qt/Projects/GameProject/enemy2.png";
+}
 
 class Enemy : public GameObject
 {
 public:
-    Enemy(QPointF p);
+    Enemy(QString type, QPointF p);
 
     void move(QPointF w);
 
