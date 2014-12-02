@@ -31,8 +31,6 @@
 Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
     health(3), dead(false), score(10), spawnDelay(2000), faceRight(false)
 {
-    //move the enemy object to that 'spawn' site
-    getRect()->translate(p.toPoint().rx()-getRect()->width()/2, p.toPoint().ry()-getRect()->height()/2);
 
     //set animation Images
     if(type == ENEMY::NORMAL){
@@ -43,6 +41,14 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
         leftAnimation = new Image(ENEMY::BADASS_L);
         rightAnimation = new Image(ENEMY::BADASS_R);
     }
+
+    //set the animation image to be left by default
+    setImage(*leftAnimation->getImage());
+    setRect(*leftAnimation->getRect());
+
+    //move the enemy object to that 'spawn' site
+    getRect()->translate(p.toPoint().rx()-getRect()->width()/2, p.toPoint().ry()-getRect()->height()/2);
+
 }
 
 /*
