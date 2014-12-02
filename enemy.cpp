@@ -22,16 +22,27 @@
     -no tower upgrade system
 */
 #include "enemy.h"
+#include <QDebug>
 
 /*
     The Enemy constructor. That spawns the enemy at a given location
     @param QPointF p the spawn coordinates
 */
 Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
-    health(3), dead(false), score(10), spawnDelay(2000)
+    health(3), dead(false), score(10), spawnDelay(2000), faceRight(false)
 {
     //move the enemy object to that 'spawn' site
-    getRect()->translate(p.toPoint());
+    getRect()->translate(p.toPoint().rx()-getRect()->width()/2, p.toPoint().ry()-getRect()->height()/2);
+
+    //set animation Images
+    if(type == ENEMY::NORMAL){
+        leftAnimation = new Image(ENEMY::NORMAL_L);
+        rightAnimation = new Image(ENEMY::NORMAL_R);
+    }
+    else if(type == ENEMY::BADASS){
+        leftAnimation = new Image(ENEMY::BADASS_L);
+        rightAnimation = new Image(ENEMY::BADASS_R);
+    }
 }
 
 /*
@@ -42,9 +53,40 @@ void Enemy::move(QPointF w){
     //temporary direction variables
     int x=0, y=0;
     //if the waypoint is to the left/right of the enemy then change its x direction
-    (w.rx() > getRect()->center().rx()) ? x=1 : x=-1;
+    //(w.rx() > getRect()->center().rx()) ? moveRight(x) : moveLeft(x);
     //if the waypoint is above/below the enemy then change its y direction
-    (w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
+    //(w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
+
+    //Try to get the enemy to move x or y
+    if(std::abs(w.rx() - getRect()->center().rx()) > 0.1 &&
+       std::abs(w.ry() - getRect()->center().ry()) > 0.1){
+        (w.rx() > getRect()->center().rx()) ? moveRight(x) : moveLeft(x);
+        (w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
+    }
+    else if(std::abs(w.rx() - getRect()->center().rx()) > 0.1)
+        (w.rx() > getRect()->center().rx()) ? moveRight(x) : moveLeft(x);
+    else if(std::abs(w.ry() - getRect()->center().ry()) > 0.1)
+        (w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
+
     //finally move the enemy one step towards its target waypoint
     getRect()->translate(x, y);
+}
+
+void Enemy::moveLeft(int& x){
+    x=-1;
+    faceRight = false;
+    setImage(*leftAnimation->getImage());
+}
+
+void Enemy::moveRight(int& x){
+    x=1;
+    faceRight = true;
+    setImage(*rightAnimation->getImage());
+}
+
+Image Enemy::getAnimation() const{
+    if(faceRight)
+        return *rightAnimation;
+    else
+        return *leftAnimation;
 }

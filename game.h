@@ -136,11 +136,10 @@ private:
     Button* quit_button;
 
     //Ingame components
-    Image* wave_visual;
     Image* wave_title;
-    Image* score_visual;
     Image* score_title;
     Image* tileHighlight;
+    Button* continue_button;
     std::vector<Image*> letterChars;
     std::vector<Image*> letterCharsAct;
     std::vector<Image*> specialChars;

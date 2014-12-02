@@ -80,8 +80,6 @@ void Game::cleanCharReferences(){
 void Game::paintEvent(QPaintEvent *event){
     QPainter painter(this);
 
-
-
     switch(state){
         case MENU:
             //Draw the title Images
@@ -135,6 +133,10 @@ void Game::paintEvent(QPaintEvent *event){
             break;
         case CLEARED:
             paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,100,100,false);
+            if(continue_button->isActive())
+                painter.drawImage(*continue_button->getRect(), continue_button->getActiveImage());
+            else
+                painter.drawImage(*continue_button->getRect(), *continue_button->getImage());
             break;
 
         case PAUSED:
@@ -169,8 +171,10 @@ void Game::paintEvent(QPaintEvent *event){
 void Game::timerEvent(QTimerEvent *event){
     //If the game is active then update the enemy positions, collision events, and spawn enemies
     if(state == INGAME){
-        if(event->timerId() == moveTimer)
+        if(event->timerId() == moveTimer){
+            cleanEnemyList();
             moveEnemies();
+        }
         for(auto& t : towers){
             if(event->timerId()==t->getTimer()){
                 killTimer(t->getTimer());
@@ -182,7 +186,6 @@ void Game::timerEvent(QTimerEvent *event){
             cleanEnemyList();
         }
         if(event->timerId() == spawnTimer){
-            //generateEnemy();
             spawner();
         }
     }
@@ -203,17 +206,17 @@ void Game::generateEnemy(){
 }
 
 void Game::spawner(){
-    //Stop the current timer
-    killTimer(spawnTimer);
-
     //Then start spawning the new enemies
     if(!spawnList.empty()){
-       // Enemy* spawn = spawnList.back();
-
+        //Stop the current timer
+        killTimer(spawnTimer);
+        //Spawn the next enemy
         enemies.push_back(spawnList.back());
         spawnTimer = startTimer(spawnList.back()->getSpawnDelay());
         spawnList.pop_back();
     }
+    else
+        killTimer(spawnTimer);
 }
 
 /*
@@ -278,7 +281,7 @@ void Game::keyPressEvent(QKeyEvent* event){
 */
 void Game::mouseMoveEvent(QMouseEvent *event){
     switch(state){
-        case MENU:{
+        case MENU:
             //If hovering over start change start's image and make sure the others are passive
             if(start_button->getRect()->contains(event->pos())){
                 start_button->setActive(true);
@@ -304,8 +307,7 @@ void Game::mouseMoveEvent(QMouseEvent *event){
                 quit_button->setActive(false);
             }
             break;
-        }
-        case PAUSED:{
+        case PAUSED:
             //If hovering over resume change resume's image and make sure main menu is passive
             if(pauseButtons[0]->getRect()->contains(event->pos())){
                 pauseButtons[0]->setActive(true);
@@ -322,34 +324,38 @@ void Game::mouseMoveEvent(QMouseEvent *event){
                 pauseButtons[1]->setActive(false);
             }
             break;
-        }
-    case HELP:{
-        //If hovering over left arrow change left arrow's image and make sure the others are passive
-        if(arrows[0]->getRect()->contains(event->pos())){
-            arrows[0]->setActive(true);
-            arrows[1]->setActive(false);
-            arrows[2]->setActive(false);
-        }
-        //If hovering over right arrow change right arrow's image and make sure the others are passive
-        else if(arrows[1]->getRect()->contains(event->pos())){
-            arrows[0]->setActive(false);
-            arrows[1]->setActive(true);
-            arrows[2]->setActive(false);
-        }
-        //If hovering over back change back's image and make sure the others are passive
-        else if(arrows[2]->getRect()->contains(event->pos())){
-            arrows[0]->setActive(false);
-            arrows[1]->setActive(false);
-            arrows[2]->setActive(true);
-        }
-        //Otherwise set all three to passive
-        else{
-            arrows[0]->setActive(false);
-            arrows[1]->setActive(false);
-            arrows[2]->setActive(false);
-        }
-        break;
-    }
+        case HELP:
+            //If hovering over left arrow change left arrow's image and make sure the others are passive
+            if(arrows[0]->getRect()->contains(event->pos())){
+                arrows[0]->setActive(true);
+                arrows[1]->setActive(false);
+                arrows[2]->setActive(false);
+            }
+            //If hovering over right arrow change right arrow's image and make sure the others are passive
+            else if(arrows[1]->getRect()->contains(event->pos())){
+                arrows[0]->setActive(false);
+                arrows[1]->setActive(true);
+                arrows[2]->setActive(false);
+            }
+            //If hovering over back change back's image and make sure the others are passive
+            else if(arrows[2]->getRect()->contains(event->pos())){
+                arrows[0]->setActive(false);
+                arrows[1]->setActive(false);
+                arrows[2]->setActive(true);
+            }
+            //Otherwise set all three to passive
+            else{
+                arrows[0]->setActive(false);
+                arrows[1]->setActive(false);
+                arrows[2]->setActive(false);
+            }
+            break;
+        case CLEARED:
+            if(continue_button->getRect()->contains(event->pos()))
+                continue_button->setActive(true);
+            else
+                continue_button->setActive(false);
+            break;
     }
     repaint();
 }
@@ -422,7 +428,7 @@ void Game::mousePressEvent(QMouseEvent *event){
             }
             break;
         }
-    case INGAME:{
+    case INGAME:
         //Check if the event occurred on a non-path tile that is empty. If so then highlight that tile
         for(auto& t : map)
             (!t->isPath() && !t->isOccupied() && t->getRect()->contains(event->pos())) ? selectTile(t) : t->setActive(false);
@@ -433,7 +439,15 @@ void Game::mousePressEvent(QMouseEvent *event){
                 curTowerOpt = i;
         }
         break;
-    }
+    case CLEARED:
+        //Pressing continue will start the next wave
+        if(continue_button->getRect()->contains(event->pos())){
+            //Resume game
+            setMouseTracking(false);
+            newWave();
+            state = INGAME;
+        }
+        break;
     }
 }
 
@@ -530,12 +544,15 @@ void Game::loadInGame(){
     towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
     towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
 
+    continue_button = new Button(mergeChars("continue",0.25,false), mergeChars("continue",0.25,true));
+
     //position the components
     wave_title->getRect()->translate(10,10);
     score_title->getRect()->translate(width()-score_title->getRect()->width()-5, 10);
     towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
     towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
     towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
+    continue_button->getRect()->translate( (width()-continue_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP+200);
 
     buildMap();
     createNavigationPath();
@@ -764,8 +781,9 @@ void Game::raycast(){
                     //End wave
                     if(enemyCount == 0){
                         state = CLEARED;
+                        setMouseTracking(true);
                         //New wave
-                        newWave();
+                        //newWave();
                     }
                 }
                 break;

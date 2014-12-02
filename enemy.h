@@ -25,6 +25,7 @@
 #define ENEMY_H
 
 #include "gameobject.h"
+#include "image.h"
 
 /*
     @class Enemy
@@ -38,6 +39,11 @@ namespace ENEMY {
     //enemy constants
     const QString NORMAL = "C:/Qt/Projects/GameProject/enemy.png";
     const QString BADASS = "C:/Qt/Projects/GameProject/enemy2.png";
+
+    const QString NORMAL_L = "C:/Qt/Projects/GameProject/white ghost left.png";
+    const QString NORMAL_R = "C:/Qt/Projects/GameProject/white ghost right.png";
+    const QString BADASS_L = "C:/Qt/Projects/GameProject/red ghost left.png";
+    const QString BADASS_R = "C:/Qt/Projects/GameProject/red ghost right.png";
 }
 
 class Enemy : public GameObject
@@ -57,6 +63,7 @@ public:
     void setDead(bool b) { dead = b; }
     int getScore() const { return score; }
     int getSpawnDelay() const { return spawnDelay; }
+    Image getAnimation() const;
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
@@ -64,6 +71,15 @@ private:
     bool dead;
     int score;
     int spawnDelay;
+
+    //Animation variables
+    bool faceRight;
+    Image* rightAnimation;
+    Image* leftAnimation;
+
+    //animation functions
+    void moveLeft(int& x);
+    void moveRight(int& x);
 };
 
 #endif // ENEMY_H
