@@ -51,6 +51,11 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 
 }
 
+Enemy::~Enemy(){
+    delete leftAnimation;
+    delete rightAnimation;
+}
+
 /*
     Function to move the enemy 1 pixel at a time.
     @param QPointF w the waypoint that the enemy is moving towards

@@ -26,17 +26,31 @@
 
 #include "gameobject.h"
 #include <QPointF>
+#include "image.h"
+#include "enemy.h"
+#include "animation.h"
 
 /*
     @class Tower
     @brief Class that manages individual tower information in the game.
     @detail This class holds the towers Image and stats which are relevant to attacking events.
 */
+
+namespace TOWER{
+    const QString TOWER_FIRE = "C:/Qt/Projects/GameProject/fire.png";
+    const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
+    const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
+
+    const QString FIRE_FRAME_1 = "C:/Qt/Projects/GameProject/fire_1.png";
+    const QString FIRE_FRAME_2 = "C:/Qt/Projects/GameProject/fire_2.png";
+}
+
 class Tower : public GameObject
 {
 public:
     //Constructor
     Tower(QString fileName, QRect tile);
+    ~Tower();
     //Getters
     int getDamage() const { return damage; }
     int getRange() const { return range; }
@@ -47,6 +61,8 @@ public:
 
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
+
+    Animation getAnimation() const {return animation;}
 private:
     //Attacking stats
     int cost;
@@ -55,6 +71,7 @@ private:
     int timerID;
     bool coolDown;
     int coolDownTime;
+    Animation animation;
 };
 
 #endif // TOWER_H

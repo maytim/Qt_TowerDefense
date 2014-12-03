@@ -128,8 +128,9 @@ void Game::paintEvent(QPaintEvent *event){
             }
 
             //Draw the towers
-            for(const auto t : towers)
+            for(const auto t : towers){
                 painter.drawImage(*t->getRect(), *t->getImage());
+            }
             break;
         case CLEARED:
             paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,100,100,false);
@@ -460,6 +461,7 @@ void Game::newGame(){
     //Delete any existing data
     clearGame();
     //load new wave data
+    wave_value = 0;
     newWave();
     //wave_value = 1;
     score_value = 10;
@@ -771,19 +773,17 @@ void Game::raycast(){
                 t->setCoolDown(true);
                 t->setTimer(startTimer(t->getCoolDown()));
                 //damage the enemy
+                e->addDamageAnimation(t->getAnimation());
                 e->inflictDamage(t->getDamage());
                 qDebug() << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0){
                     e->setDead(true);
                     enemyCount--;
-
                     //End wave
                     if(enemyCount == 0){
                         state = CLEARED;
                         setMouseTracking(true);
-                        //New wave
-                        //newWave();
                     }
                 }
                 break;

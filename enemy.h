@@ -26,6 +26,7 @@
 
 #include "gameobject.h"
 #include "image.h"
+#include "animation.h"
 
 /*
     @class Enemy
@@ -50,6 +51,7 @@ class Enemy : public GameObject
 {
 public:
     Enemy(QString type, QPointF p);
+    ~Enemy();
 
     void move(QPointF w);
 
@@ -64,6 +66,7 @@ public:
     int getScore() const { return score; }
     int getSpawnDelay() const { return spawnDelay; }
     Image getAnimation() const;
+    void addDamageAnimation(Animation a){damageAnimations.push_back(a);}
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
@@ -80,6 +83,8 @@ private:
     //animation functions
     void moveLeft(int& x);
     void moveRight(int& x);
+
+    std::vector<Animation> damageAnimations;
 };
 
 #endif // ENEMY_H
