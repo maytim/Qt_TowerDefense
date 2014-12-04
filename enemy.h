@@ -27,6 +27,7 @@
 #include "gameobject.h"
 #include "image.h"
 #include "animation.h"
+#include <QDebug>
 
 /*
     @class Enemy
@@ -66,7 +67,12 @@ public:
     int getScore() const { return score; }
     int getSpawnDelay() const { return spawnDelay; }
     Image getAnimation() const;
-    void addDamageAnimation(Animation a){damageAnimations.push_back(a);}
+    Animation* getDmgAnimation() const { return damageAnimation; }
+    void addDamageAnimation( Animation* a){ damageAnimation = new Animation(*a); hasAnimation = true; }
+    void paintDamageAnimation(QPainter& p);
+    void damageEvent(int dmg_amount,  Animation* dmg_anim) { addDamageAnimation(dmg_anim); inflictDamage(dmg_amount); }
+    bool hasAnimation;
+    void centerDmgAnimation(){damageAnimation->moveCurrentFrame(getRect()->center());}
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
@@ -84,7 +90,7 @@ private:
     void moveLeft(int& x);
     void moveRight(int& x);
 
-    std::vector<Animation> damageAnimations;
+    Animation* damageAnimation;
 };
 
 #endif // ENEMY_H

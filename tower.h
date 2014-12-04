@@ -62,7 +62,7 @@ public:
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
 
-    Animation getAnimation() const {return animation;}
+    Animation* getAnimation() const {return animation;}
 private:
     //Attacking stats
     int cost;
@@ -71,7 +71,7 @@ private:
     int timerID;
     bool coolDown;
     int coolDownTime;
-    Animation animation;
+    Animation* animation;
 };
 
 #endif // TOWER_H

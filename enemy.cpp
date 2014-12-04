@@ -22,6 +22,7 @@
     -no tower upgrade system
 */
 #include "enemy.h"
+#include <QPainter>
 #include <QDebug>
 
 /*
@@ -29,7 +30,7 @@
     @param QPointF p the spawn coordinates
 */
 Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
-    health(3), dead(false), score(10), spawnDelay(2000), faceRight(false)
+    health(3), dead(false), score(10), spawnDelay(2000), faceRight(false), hasAnimation(false)
 {
 
     //set animation Images
@@ -54,6 +55,8 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 Enemy::~Enemy(){
     delete leftAnimation;
     delete rightAnimation;
+
+    delete damageAnimation;
 }
 
 /*
@@ -100,4 +103,9 @@ Image Enemy::getAnimation() const{
         return *rightAnimation;
     else
         return *leftAnimation;
+}
+
+void Enemy::paintDamageAnimation(QPainter& p){
+
+    p.drawImage(*damageAnimation->getCurrentFrame().getRect(), *damageAnimation->getCurrentFrame().getImage());
 }

@@ -33,6 +33,7 @@
 #include "wavegenerator.h"
 #include <QWidget>
 
+
 //Enum for all of the different game states
 enum State {MENU, INGAME, CLEARED, PAUSED, HELP};
 

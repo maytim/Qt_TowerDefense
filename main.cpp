@@ -24,14 +24,18 @@
 #include "game.h"
 #include <QApplication>
 
+namespace Temp{
+    Game* g;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Game w;
-    w.setWindowTitle("Tower Defense");
-    w.setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
-    w.show();
+    Temp::g = new Game();
+    Temp::g->setWindowTitle("Tower Defense");
+    Temp::g->setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
+    Temp::g->show();
 
     return a.exec();
 }

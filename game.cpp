@@ -25,6 +25,7 @@
 #include "waypoint.h"
 #include "enemy.h"
 #include "wavegenerator.h"
+//#include "animation.h"
 
 #include <QApplication>
 #include <QPainter>
@@ -123,10 +124,16 @@ void Game::paintEvent(QPaintEvent *event){
 
             //Draw each of the enemies
             for(auto& e : enemies){
-                if(!e->isDead())
+                if(!e->isDead()){
                     painter.drawImage(*e->getRect(), *e->getImage());
-            }
 
+                     if(e->hasAnimation){
+                        e->centerDmgAnimation();
+                        painter.drawImage(*e->getDmgAnimation()->getCurrentFrame().getRect(), *e->getDmgAnimation()->getCurrentFrame().getImage());
+                    }
+                }
+            }
+\
             //Draw the towers
             for(const auto t : towers){
                 painter.drawImage(*t->getRect(), *t->getImage());
@@ -183,8 +190,23 @@ void Game::timerEvent(QTimerEvent *event){
             }
         }
         if(event->timerId() == collisionTimer){
+            killTimer(collisionTimer);
             raycast();
             cleanEnemyList();
+            collisionTimer = startTimer(150);
+        }
+        for(auto& e : enemies){
+            qDebug() << "hasAnimation: " << e->hasAnimation;
+            if(e->hasAnimation)
+                qDebug() << "event timer: " << event->timerId() << " animation timer: " << e->getDmgAnimation()->getTimer();
+            if(e->hasAnimation && e->getDmgAnimation()->getTimer() == event->timerId()){
+                killTimer(e->getDmgAnimation()->getTimer());
+                qDebug() << "timer ended";
+                if(!e->getDmgAnimation()->increment())
+                    e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
+                else
+                    e->hasAnimation = false;
+            }
         }
         if(event->timerId() == spawnTimer){
             spawner();
@@ -769,13 +791,14 @@ void Game::raycast(){
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
             //If the line's distance is less than the tower's range then that enemy can be attacked
             if(distance < t->getRange() && !t->isCoolDown()){
+                qDebug() <<"found new target";
                 //Cool down tower
                 t->setCoolDown(true);
                 t->setTimer(startTimer(t->getCoolDown()));
                 //damage the enemy
-                e->addDamageAnimation(t->getAnimation());
-                e->inflictDamage(t->getDamage());
-                qDebug() << e->getHealth();
+                e->damageEvent(t->getDamage(), t->getAnimation());
+                e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
+                qDebug() << "Health: " << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0){
                     e->setDead(true);
@@ -797,6 +820,11 @@ void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
             //When deleting the enemy, award the player the appropriate points
+            if(enemies[i]->getDmgAnimation()->getTimer() != -1){
+                killTimer(enemies[i]->getDmgAnimation()->getTimer());
+                enemies[i]->getDmgAnimation()->setTimer(-1);
+            }
+            qDebug()<< "Enemy timer killed";
             updateScore(enemies[i]->getScore());
             delete enemies[i];
             enemies.erase(enemies.begin()+i);
@@ -1301,5 +1329,4 @@ void Game::createNavigationPath(){
             navPath[t->getPathID()-1] = t->getRect()->center();
     }
 }
-
 
