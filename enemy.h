@@ -73,6 +73,7 @@ public:
     void damageEvent(int dmg_amount,  Animation* dmg_anim) { addDamageAnimation(dmg_anim); inflictDamage(dmg_amount); }
     bool hasAnimation;
     void centerDmgAnimation(){damageAnimation->moveCurrentFrame(getRect()->center());}
+    void resetDmgAnimation() {delete damageAnimation; damageAnimation = nullptr; hasAnimation = false;}
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;

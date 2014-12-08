@@ -55,7 +55,6 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 Enemy::~Enemy(){
     delete leftAnimation;
     delete rightAnimation;
-
     delete damageAnimation;
 }
 

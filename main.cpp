@@ -33,8 +33,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     Temp::g = new Game();
-    Temp::g->setWindowTitle("Tower Defense");
-    Temp::g->setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
     Temp::g->show();
 
     return a.exec();

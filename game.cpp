@@ -31,6 +31,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QTimer>
 
 #include <QDebug>
 
@@ -40,6 +41,9 @@
 */
 Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) , enemyCount(0)
 {
+    setWindowTitle("Elemental Defense");
+    setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
+
     //Since we start in the Menu portion of the game we need mouse tracking
     setMouseTracking(true);
 
@@ -114,6 +118,12 @@ void Game::paintEvent(QPaintEvent *event){
                 painter.drawImage(*o->getRect(), *o->getImage());
             painter.drawImage(*towerOptions[curTowerOpt]->getRect(), *towerOptHighlight->getImage());
 
+            //Upgrade menu
+            for(auto& u : fire_upgrade)
+                painter.drawImage(*u->getRect(), *u->getImage());
+            for(auto& i : fire_upgrade_icon)
+                painter.drawImage(*i->getRect(), *i->getImage());
+            painter.drawImage(*upgrade_button->getRect(), *upgrade_button->getImage());
 
             //Draw the map tiles
             for(auto& t : map){
@@ -127,10 +137,10 @@ void Game::paintEvent(QPaintEvent *event){
                 if(!e->isDead()){
                     painter.drawImage(*e->getRect(), *e->getImage());
 
-                     if(e->hasAnimation){
+                     /*if(e->hasAnimation){
                         e->centerDmgAnimation();
                         painter.drawImage(*e->getDmgAnimation()->getCurrentFrame().getRect(), *e->getDmgAnimation()->getCurrentFrame().getImage());
-                    }
+                    }*/
                 }
             }
 \
@@ -140,7 +150,7 @@ void Game::paintEvent(QPaintEvent *event){
             }
             break;
         case CLEARED:
-            paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,100,100,false);
+            paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,(width()-(13+std::to_string(getWave()).length())*20)/2,100,false);
             if(continue_button->isActive())
                 painter.drawImage(*continue_button->getRect(), continue_button->getActiveImage());
             else
@@ -186,28 +196,37 @@ void Game::timerEvent(QTimerEvent *event){
         for(auto& t : towers){
             if(event->timerId()==t->getTimer()){
                 killTimer(t->getTimer());
+                qDebug() << "Cooldown is false";
                 t->setCoolDown(false);
             }
         }
         if(event->timerId() == collisionTimer){
-            killTimer(collisionTimer);
+            //killTimer(collisionTimer);
             raycast();
-            cleanEnemyList();
-            collisionTimer = startTimer(150);
+            //cleanEnemyList();
+            //collisionTimer = startTimer(150);
+            //qDebug() << "Collision timer id: "<<collisionTimer;
         }
-        for(auto& e : enemies){
-            qDebug() << "hasAnimation: " << e->hasAnimation;
-            if(e->hasAnimation)
-                qDebug() << "event timer: " << event->timerId() << " animation timer: " << e->getDmgAnimation()->getTimer();
-            if(e->hasAnimation && e->getDmgAnimation()->getTimer() == event->timerId()){
-                killTimer(e->getDmgAnimation()->getTimer());
-                qDebug() << "timer ended";
-                if(!e->getDmgAnimation()->increment())
-                    e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
-                else
-                    e->hasAnimation = false;
+        /*for(auto& e : enemies){
+            if(e->hasAnimation){
+                //qDebug() << "  e hasAnimation";
+                //qDebug() << "event timer: " << event->timerId() << " animation timer: " << e->getDmgAnimation()->getTimer();
             }
-        }
+            if(e->hasAnimation && e->getDmgAnimation()->getTimer() == event->timerId()){
+            if(e->hasAnimation){
+                    killTimer(event->timerId());
+                    qDebug() << "timer ended";
+                }
+
+                if(!e->getDmgAnimation()->increment()){
+                    e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
+                    qDebug() << "Animation timer id: "<<e->getDmgAnimation()->getTimer();
+                }else{
+                    e->resetDmgAnimation();
+                    e->hasAnimation = false;
+                }
+            }
+        }*/
         if(event->timerId() == spawnTimer){
             spawner();
         }
@@ -449,6 +468,7 @@ void Game::mousePressEvent(QMouseEvent *event){
                 //Return to main menu
                 state = MENU;
             }
+            repaint();
             break;
         }
     case INGAME:
@@ -460,6 +480,18 @@ void Game::mousePressEvent(QMouseEvent *event){
         for(size_t i=0; i<towerOptions.size(); i++){
             if(towerOptions[i]->getRect()->contains(event->pos()))
                 curTowerOpt = i;
+        }
+        if(upgrade_button->getRect()->contains(event->pos())){
+            //open upgrade window
+        }
+        if(fire_upgrade[0]->getRect()->contains(event->pos())){
+            Tower::upgradeDamage(FIRE,1);
+        }
+        if(fire_upgrade[1]->getRect()->contains(event->pos())){
+
+        }
+        if(fire_upgrade[2]->getRect()->contains(event->pos())){
+
         }
         break;
     case CLEARED:
@@ -485,8 +517,7 @@ void Game::newGame(){
     //load new wave data
     wave_value = 0;
     newWave();
-    //wave_value = 1;
-    score_value = 10;
+    score_value = 20;
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
@@ -537,13 +568,16 @@ void Game::loadMenu(){
     help_button = new Button(mergeChars("help",0.25,false), mergeChars("help",0.25,true));
     quit_button = new Button(mergeChars("quit",0.25,false), mergeChars("quit",0.25,true));
 
-    //position the components
-    title_line1->getRect()->translate( (width()-title_line1->getRect()->width())/2 , CONSTANTS::MARGIN_TOP );
-    title_line2->getRect()->translate( (width()-title_line2->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height());
-    start_button->getRect()->translate( (width()-start_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height());
-    help_button->getRect()->translate( (width()-help_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height());
-    quit_button->getRect()->translate( (width()-quit_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height() + help_button->getRect()->height());
+    int const top_margin = (height() - (title_line1->getRect()->height() + title_line2->getRect()->height() +
+                           start_button->getRect()->height() + help_button->getRect()->height() +
+                           quit_button->getRect()->height()))/2;
 
+    //position the components
+    title_line1->getRect()->moveTo( (width()-title_line1->getRect()->width())/2 , top_margin );
+    title_line2->getRect()->moveTo( (width()-title_line2->getRect()->width())/2 , top_margin + title_line1->getRect()->height());
+    start_button->getRect()->moveTo( (width()-start_button->getRect()->width())/2 , top_margin + title_line1->getRect()->height() + title_line2->getRect()->height());
+    help_button->getRect()->moveTo( (width()-help_button->getRect()->width())/2 , top_margin + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height());
+    quit_button->getRect()->moveTo( (width()-quit_button->getRect()->width())/2 , top_margin + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height() + help_button->getRect()->height());
 }
 
 //A function to delete the menu components
@@ -567,16 +601,35 @@ void Game::loadInGame(){
     towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
     towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
+    upgrade_button = new Image(CONSTANTS::UPGRADE);
+
+    //Upgrade Menu
+    for(int i = 0; i<3; i++)
+        fire_upgrade.push_back(new Image(CONSTANTS::UPGRADE_FIRE_BASE));
+    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_STRENGTH));
+    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RANGE));
+    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RATE));
 
     continue_button = new Button(mergeChars("continue",0.25,false), mergeChars("continue",0.25,true));
 
     //position the components
-    wave_title->getRect()->translate(10,10);
-    score_title->getRect()->translate(width()-score_title->getRect()->width()-5, 10);
+    wave_title->getRect()->moveTo(10,10);
+    score_title->getRect()->moveTo(width()-score_title->getRect()->width()-5, 10);
     towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
     towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
     towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
-    continue_button->getRect()->translate( (width()-continue_button->getRect()->width())/2 , CONSTANTS::MARGIN_TOP+200);
+    upgrade_button->getRect()->moveTo(width()-upgrade_button->getRect()->width()-5, 150 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height() + towerOptions[2]->getRect()->height());
+
+    //Upgrade Menu
+    int y = 320;
+    for(size_t i = 0, s = fire_upgrade.size(); i < s; i++){
+        fire_upgrade[i]->getRect()->moveTo(5, y);
+        fire_upgrade_icon[i]->getRect()->moveTo(5, y);
+        y+= 22;
+    }
+
+    //Cleared items
+    continue_button->getRect()->moveTo( (width()-continue_button->getRect()->width())/2 , 264);
 
     buildMap();
     createNavigationPath();
@@ -679,8 +732,9 @@ void Game::loadPause(){
     pauseButtons.push_back(new Button(mergeChars("main menu",0.25,false), mergeChars("main menu",0.25,true)));
 
     //position the components
-    pauseButtons[0]->getRect()->translate( (width()-pauseButtons[0]->getRect()->width())/2 , CONSTANTS::MARGIN_TOP);
-    pauseButtons[1]->getRect()->translate( (width()-pauseButtons[1]->getRect()->width())/2 , CONSTANTS::MARGIN_TOP+pauseButtons[0]->getRect()->height());
+    int const top_margin = (height() - (pauseButtons[0]->getRect()->height() + pauseButtons[1]->getRect()->height()))/2;
+    pauseButtons[0]->getRect()->moveTo( (width()-pauseButtons[0]->getRect()->width())/2 , top_margin);
+    pauseButtons[1]->getRect()->moveTo( (width()-pauseButtons[1]->getRect()->width())/2 , top_margin+pauseButtons[0]->getRect()->height());
 }
 
 //A function to delete the pause components
@@ -705,12 +759,12 @@ void Game::loadHelp(){
     helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_6));
 
     //position the components
-    arrows[2]->getRect()->translate( 10, 10);
-    arrows[0]->getRect()->translate( 30, (height()-arrows[0]->getRect()->height())/2);
-    arrows[1]->getRect()->translate( width()-30-arrows[1]->getRect()->width(), (height()-arrows[1]->getRect()->height())/2);
+    arrows[2]->getRect()->moveTo( 10, 10);
+    arrows[0]->getRect()->moveTo( 30, (height()-arrows[0]->getRect()->height())/2);
+    arrows[1]->getRect()->moveTo( width()-30-arrows[1]->getRect()->width(), (height()-arrows[1]->getRect()->height())/2);
 
     for(auto& i : helpImages)
-        i->getRect()->translate((width()-i->getRect()->width())/2, (height()-i->getRect()->height())/2);
+        i->getRect()->moveTo((width()-i->getRect()->width())/2, (height()-i->getRect()->height())/2);
 }
 
 //A function to delete the help components
@@ -734,7 +788,7 @@ void Game::buildMap(){
     int colCounter = 0;
     //Reposition the newly created tiles into a grid
     for(auto& t : map){
-        t->getRect()->translate(xPos, yPos);
+        t->getRect()->moveTo(xPos, yPos);
         //Update the column until the maximum width is achieved
         if(++colCounter<CONSTANTS::TILE_COL)
             xPos += t->getRect()->width();
@@ -794,15 +848,22 @@ void Game::raycast(){
                 qDebug() <<"found new target";
                 //Cool down tower
                 t->setCoolDown(true);
-                t->setTimer(startTimer(t->getCoolDown()));
+                //t->setTimer(startTimer(t->getCoolDown()));
+                QTimer::singleShot(1000,t,SLOT(testing()));
+                qDebug() << "Tower time: " << t->getTimer();
                 //damage the enemy
+                /*if(e->hasAnimation){
+                    killTimer(e->getDmgAnimation()->getTimer());
+                    e->hasAnimation = false;
+                }*/
                 e->damageEvent(t->getDamage(), t->getAnimation());
-                e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
+                //e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
                 qDebug() << "Health: " << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0){
                     e->setDead(true);
                     enemyCount--;
+                    cleanEnemyList();
                     //End wave
                     if(enemyCount == 0){
                         state = CLEARED;
@@ -820,10 +881,8 @@ void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
             //When deleting the enemy, award the player the appropriate points
-            if(enemies[i]->getDmgAnimation()->getTimer() != -1){
-                killTimer(enemies[i]->getDmgAnimation()->getTimer());
-                enemies[i]->getDmgAnimation()->setTimer(-1);
-            }
+            //if(enemies[i]->hasAnimation)
+                //killTimer(enemies[i]->getDmgAnimation()->getTimer());
             qDebug()<< "Enemy timer killed";
             updateScore(enemies[i]->getScore());
             delete enemies[i];

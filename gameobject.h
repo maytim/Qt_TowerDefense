@@ -30,8 +30,9 @@
 
 //Constants used throughout the application
 namespace CONSTANTS{
-    const int SCREEN_WIDTH = 768;
-    const int SCREEN_HEIGHT = 512;
+    const int SCREEN_WIDTH = 400;
+    const int SCREEN_HEIGHT = 400;
+    const int MARGIN_TOP = 64;
         
     //GUI constants
     const QString RIGHT_PATH = "C:/Qt/Projects/GameProject/rightarrow.png";
@@ -51,6 +52,12 @@ namespace CONSTANTS{
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
     const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
+    const QString UPGRADE = "C:/Qt/Projects/GameProject/upgrade_button.png";
+    const QString UPGRADE_FIRE_BASE = "C:/Qt/Projects/GameProject/fire_icon_base.png";
+    const QString UPGRADE_STRENGTH = "C:/Qt/Projects/GameProject/strength_icon.png";
+    const QString UPGRADE_RANGE = "C:/Qt/Projects/GameProject/target_icon.png";
+    const QString UPGRADE_RATE = "C:/Qt/Projects/GameProject/time_icon.png";
+
     const QString CHAR_0 = "C:/Qt/Projects/GameProject/characters/normal/0.png";
     const QString CHAR_1 = "C:/Qt/Projects/GameProject/characters/normal/1.png";
     const QString CHAR_2 = "C:/Qt/Projects/GameProject/characters/normal/2.png";
@@ -125,7 +132,6 @@ namespace CONSTANTS{
     const QString CHAR_Y_ACT = "C:/Qt/Projects/GameProject/characters/active/Y.png";
     const QString CHAR_Z_ACT = "C:/Qt/Projects/GameProject/characters/active/Z.png";
     const QString CHAR_SPACE = "C:/Qt/Projects/GameProject/characters/space.png";
-    const int MARGIN_TOP = 64;
 
     //map constants
     const int TILE_ROW = 8;
@@ -148,8 +154,9 @@ namespace CONSTANTS{
     @detail A base class for all components in the game world. It uses a QImage and QRect
     to represent the objects within the game.
 */
-class GameObject
+class GameObject : public QObject
 {
+    Q_OBJECT
 public:
     //Constructors and Destructors
     GameObject();

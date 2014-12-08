@@ -29,6 +29,7 @@
 #include "image.h"
 #include "enemy.h"
 #include "animation.h"
+#include <QDebug>
 
 /*
     @class Tower
@@ -45,33 +46,52 @@ namespace TOWER{
     const QString FIRE_FRAME_2 = "C:/Qt/Projects/GameProject/fire_2.png";
 }
 
+enum Type{FIRE,ICE,EARTH};
+
 class Tower : public GameObject
 {
+    Q_OBJECT
 public:
     //Constructor
     Tower(QString fileName, QRect tile);
     ~Tower();
     //Getters
-    int getDamage() const { return damage; }
-    int getRange() const { return range; }
+    int getDamage() const;
+    int getRange() const;
     int getTimer() const { return timerID; }
     bool isCoolDown() const { return coolDown; }
-    int getCoolDown() const { return coolDownTime; }
-    int getCost() const { return cost; }
+    int getCoolDown() const;
+    int getCost() const;
 
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
 
+    static void upgradeDamage(Type t, int change);
+    static void upgradeRange(Type t, int change);
+    static void upgradeSpeed(Type t, int change);
+
     Animation* getAnimation() const {return animation;}
+public slots:
+    void testing(){qDebug()<<"text"; setCoolDown(false);}
 private:
     //Attacking stats
-    int cost;
-    int damage;
-    int range;
+    Type type;
     int timerID;
     bool coolDown;
-    int coolDownTime;
     Animation* animation;
+
+    class TowerStats{
+    public:
+        TowerStats(int a, int b,int c, int d){speed=a;strength=b;range=c;cost=d;}
+        int speed;
+        int strength;
+        int range;
+        int cost;
+    };
+
+    static TowerStats fire;
+    static TowerStats ice;
+    static TowerStats earth;
 };
 
 #endif // TOWER_H

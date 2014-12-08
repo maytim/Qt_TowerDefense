@@ -27,7 +27,14 @@
 #include <QApplication>
 
 //Create a tower with default stats for it's damage and range. Move it to the tile that it was created over
-Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , cost(10), damage(1) , range(40) , coolDown(false) , coolDownTime(1000){
+Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(false){
+    if(fileName == TOWER::TOWER_FIRE)
+        type = FIRE;
+    else if(fileName == TOWER::TOWER_ICE)
+        type = ICE;
+    else if(fileName == TOWER::TOWER_EARTH)
+        type = EARTH;
+
     getRect()->moveTo(tile.topLeft());
     animation = new Animation();
     animation->addFrame(Image(TOWER::FIRE_FRAME_1,0.5), 100);
@@ -40,3 +47,107 @@ Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , cost(10), da
 Tower::~Tower(){
     delete animation;
 }
+
+Tower::TowerStats Tower::fire = Tower::TowerStats(1000,1,40,10);
+Tower::TowerStats Tower::ice = Tower::TowerStats(1000,3,40,10);
+Tower::TowerStats Tower::earth = Tower::TowerStats(1000,4,40,10);
+
+int Tower::getDamage() const{
+    switch(type){
+        case FIRE:
+            return fire.strength;
+            break;
+        case ICE:
+            return ice.strength;
+            break;
+        case EARTH:
+            return earth.strength;
+            break;
+    }
+}
+
+int Tower::getRange() const{
+    switch(type){
+        case FIRE:
+            return fire.range;
+            break;
+        case ICE:
+            return ice.range;
+            break;
+        case EARTH:
+            return earth.range;
+            break;
+    }
+}
+
+int Tower::getCoolDown() const{
+    switch(type){
+        case FIRE:
+            return fire.speed;
+            break;
+        case ICE:
+            return ice.speed;
+            break;
+        case EARTH:
+            return earth.speed;
+            break;
+    }
+}
+
+int Tower::getCost() const{
+    switch(type){
+        case FIRE:
+            return fire.cost;
+            break;
+        case ICE:
+            return ice.cost;
+            break;
+        case EARTH:
+            return earth.cost;
+            break;
+    }
+}
+
+void Tower::upgradeDamage(Type t, int change){
+    switch(t){
+        case FIRE:
+            fire.strength += change;
+            break;
+        case ICE:
+            ice.strength += change;
+            break;
+        case EARTH:
+            earth.strength += change;
+            break;
+    }
+}
+
+void Tower::upgradeRange(Type t, int change){
+    switch(t){
+        case FIRE:
+            fire.range += change;
+            break;
+        case ICE:
+            ice.range += change;
+            break;
+        case EARTH:
+            earth.range += change;
+            break;
+    }
+}
+
+void Tower::upgradeSpeed(Type t, int change){
+    switch(t){
+        case FIRE:
+            fire.speed -= change;
+            break;
+        case ICE:
+            ice.speed -= change;
+            break;
+        case EARTH:
+            earth.speed -= change;
+            break;
+    }
+}
+
+

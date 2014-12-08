@@ -79,6 +79,8 @@ public:
     void updateScore(int v) { score_value += v; }
 
     QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
+public slots:
+    void test(Tower* t){qDebug()<<"text"; t->setCoolDown(false);}
 private:
     //Functions to setup the game states' componenets
     void fillCharReferences();
@@ -147,6 +149,9 @@ private:
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;
+    Image* upgrade_button;
+    std::vector<Image*> fire_upgrade;
+    std::vector<Image*> fire_upgrade_icon;
 
     //Pause components
     std::vector<Button*> pauseButtons;
