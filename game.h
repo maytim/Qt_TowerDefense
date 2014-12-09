@@ -36,6 +36,10 @@
 #include <QTimer>
 #include <random>
 
+namespace TOOLTIP{
+    const QString BASE = "C:/Qt/Projects/GameProject/tooltip_base.png";
+}
+
 //Enum for all of the different game states
 enum State {MENU, INGAME, CLEARED, PAUSED, HELP};
 
@@ -83,13 +87,14 @@ public:
     void updateWave(){ wave_value++; }
     void updateScore(int v) { score_value += v; }
 
+    Image* mergeChars(std::string,double,Chars);
+
     QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 public slots:
-    void test(){for(auto& d : damageDisplays)d->getRect()->translate(0,-1); if(state==INGAME)QTimer::singleShot(150,this,SLOT(test()));}
+    void moveDecals(){for(auto& d : damageDisplays)d->getRect()->translate(0,-1); if(state==INGAME)QTimer::singleShot(150,this,SLOT(moveDecals()));}
     void removeDecal(){Image* front = damageDisplays.front(); damageDisplays.pop_front(); delete front;}
     void moveEvent(){cleanEnemyList(); moveEnemies(); if(state==INGAME)QTimer::singleShot(30,this,SLOT(moveEvent()));}
     void collisionEvent(){raycast(); if(state == INGAME)QTimer::singleShot(30,this,SLOT(collisionEvent()));}
-    void spawner();
 private:
     //Functions to setup the game states' componenets
     void fillCharReferences();
@@ -108,13 +113,13 @@ private:
     //A helper function to draw the scores using Images
     void paintChar(std::string,double,QPainter&,int,int,bool);
     void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
-    Image* mergeChars(std::string,double,Chars);
     void appendChar(Image* character, double scale, Image* i);
 
     //Spawning function
-    //void spawner();
+    void spawner();
 
     void newWave();
+    void startTimers();
 
     WaveGenerator wave_generator;
 
@@ -124,8 +129,6 @@ private:
 
     //The QTimer identifier
     int timerId;
-    int collisionTimer;
-    int moveTimer;
     int spawnTimer;
 
     //Count for spawnTimer
@@ -163,7 +166,6 @@ private:
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;
-    Image* upgrade_button;
     std::vector<Image*> fire_upgrade;
     std::vector<Image*> upgrade_icon;
     std::vector<Image*> ice_upgrade;
@@ -179,9 +181,25 @@ private:
     //Index to navigate the help images
     int helpIndex;
 
+    class ToolTip;
 
-    //Temp
-    Image* temp_start;
+    ToolTip* tooltip;
+
+    class ToolTip{
+    public:
+        ToolTip(Image* c, Image* c_a, Image* s, Image* s_u);
+        ~ToolTip();
+        void moveTo(double x, double y);
+        void paint(QPainter* p);
+    private:
+        Image* cost;
+        Image* cost_amount;
+        Image* background;
+        Image* stat;
+        Image* stat_upgrade;
+
+        void resizeBackground();
+    };
 };
 
 #endif // GAME_H

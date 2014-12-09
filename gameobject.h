@@ -60,6 +60,22 @@ namespace CONSTANTS{
     const QString UPGRADE_RANGE = "C:/Qt/Projects/GameProject/target_icon.png";
     const QString UPGRADE_RATE = "C:/Qt/Projects/GameProject/time_icon.png";
 
+    //map constants
+    const int TILE_ROW = 8;
+    const int TILE_COL = 8;
+    const int PATH_TILE_COUNT = 22;
+    const int MAP[TILE_ROW*TILE_COL] = { 0, 0, 0, 0, 0, 0, 1, 0,
+                                         0, 7, 6, 5, 4, 3, 2, 0,
+                                         0, 8, 0, 0, 0, 0, 0, 0,
+                                         0, 9, 0, 0,16,17,18, 0,
+                                         0,10, 0, 0,15, 0,19, 0,
+                                         0,11,12,13,14, 0,20, 0,
+                                         0, 0, 0, 0, 0, 0,21, 0,
+                                         0, 0, 0, 0, 0, 0,22, 0};
+    const int TOWER_COST = 10;
+}
+
+namespace CHARS{
     const QString CHAR_0 = "C:/Qt/Projects/GameProject/characters/normal/0.png";
     const QString CHAR_1 = "C:/Qt/Projects/GameProject/characters/normal/1.png";
     const QString CHAR_2 = "C:/Qt/Projects/GameProject/characters/normal/2.png";
@@ -145,20 +161,6 @@ namespace CONSTANTS{
     const QString CHAR_7_RED = "C:/Qt/Projects/GameProject/characters/red/7.png";
     const QString CHAR_8_RED = "C:/Qt/Projects/GameProject/characters/red/8.png";
     const QString CHAR_9_RED = "C:/Qt/Projects/GameProject/characters/red/9.png";
-
-    //map constants
-    const int TILE_ROW = 8;
-    const int TILE_COL = 8;
-    const int PATH_TILE_COUNT = 22;
-    const int MAP[TILE_ROW*TILE_COL] = { 0, 0, 0, 0, 0, 0, 1, 0,
-                                         0, 7, 6, 5, 4, 3, 2, 0,
-                                         0, 8, 0, 0, 0, 0, 0, 0,
-                                         0, 9, 0, 0,16,17,18, 0,
-                                         0,10, 0, 0,15, 0,19, 0,
-                                         0,11,12,13,14, 0,20, 0,
-                                         0, 0, 0, 0, 0, 0,21, 0,
-                                         0, 0, 0, 0, 0, 0,22, 0};
-    const int TOWER_COST = 10;
 }
 
 /*

@@ -20,7 +20,7 @@ SOURCES += main.cpp\
     tower.cpp \
     wavegenerator.cpp \
     image.cpp \
-    animation.cpp
+    tooltip.cpp
 
 HEADERS  += game.h \
     gameobject.h \
@@ -31,4 +31,4 @@ HEADERS  += game.h \
     tile.h \
     tower.h \
     wavegenerator.h \
-    animation.h
+    tooltip.h

@@ -25,7 +25,6 @@
 #include "waypoint.h"
 #include "enemy.h"
 #include "wavegenerator.h"
-//#include "animation.h"
 
 #include <QApplication>
 #include <QPainter>
@@ -40,7 +39,7 @@
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
 Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) ,
-    enemyCount(0), generator(SEED), damageDisplayOffset(-2,2)
+    enemyCount(0), generator(SEED), damageDisplayOffset(-2,2), tooltip(NULL)
 {
     setWindowTitle("Elemental Defense");
     setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
@@ -147,25 +146,21 @@ void Game::paintEvent(QPaintEvent *event){
 
             //Draw each of the enemies
             for(auto& e : enemies){
-                if(!e->isDead()){
+                if(!e->isDead())
                     painter.drawImage(*e->getRect(), *e->getImage());
-
-                     /*if(e->hasAnimation){
-                        e->centerDmgAnimation();
-                        painter.drawImage(*e->getDmgAnimation()->getCurrentFrame().getRect(), *e->getDmgAnimation()->getCurrentFrame().getImage());
-                    }*/
-                }
             }
 \
             //Draw the towers
-            for(const auto t : towers){
+            for(const auto t : towers)
                 painter.drawImage(*t->getRect(), *t->getImage());
-            }
 
-            for(const auto d : damageDisplays){
+            //Draw the damage number images
+            for(const auto d : damageDisplays)
                 painter.drawImage(*d->getRect(), *d->getImage());
-            }
 
+            //Draw the tooltip
+            if(tooltip != NULL)
+                tooltip->paint(&painter);
             break;
         case CLEARED:
             paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,(width()-(13+std::to_string(getWave()).length())*20)/2,100,false);
@@ -207,47 +202,8 @@ void Game::paintEvent(QPaintEvent *event){
 void Game::timerEvent(QTimerEvent *event){
     //If the game is active then update the enemy positions, collision events, and spawn enemies
     if(state == INGAME){
-        /*if(event->timerId() == moveTimer){
-            cleanEnemyList();
-            moveEnemies();
-        }*/
-        /*for(auto& t : towers){
-            if(event->timerId()==t->getTimer()){
-                killTimer(t->getTimer());
-                qDebug() << "Cooldown is false";
-                t->setCoolDown(false);
-            }
-        }*/
-        /*if(event->timerId() == collisionTimer){
-            //killTimer(collisionTimer);
-            raycast();
-            //cleanEnemyList();
-            //collisionTimer = startTimer(150);
-            //qDebug() << "Collision timer id: "<<collisionTimer;
-        }*/
-        /*for(auto& e : enemies){
-            if(e->hasAnimation){
-                //qDebug() << "  e hasAnimation";
-                //qDebug() << "event timer: " << event->timerId() << " animation timer: " << e->getDmgAnimation()->getTimer();
-            }
-            if(e->hasAnimation && e->getDmgAnimation()->getTimer() == event->timerId()){
-            if(e->hasAnimation){
-                    killTimer(event->timerId());
-                    qDebug() << "timer ended";
-                }
-
-                if(!e->getDmgAnimation()->increment()){
-                    e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
-                    qDebug() << "Animation timer id: "<<e->getDmgAnimation()->getTimer();
-                }else{
-                    e->resetDmgAnimation();
-                    e->hasAnimation = false;
-                }
-            }
-        }*/
-        if(event->timerId() == spawnTimer){
+        if(event->timerId() == spawnTimer)
             spawner();
-        }
     }
     repaint();
 }
@@ -416,6 +372,44 @@ void Game::mouseMoveEvent(QMouseEvent *event){
             else
                 continue_button->setActive(false);
             break;
+        case INGAME:
+            delete tooltip;
+            tooltip = NULL;
+
+            Type curTowerType;
+            switch(curTowerOpt){
+                case 0:
+                    curTowerType = FIRE;
+                    break;
+                case 1:
+                    curTowerType = ICE;
+                    break;
+                case 2:
+                    curTowerType = EARTH;
+                    break;
+            }
+
+            //Upgrade #1
+            if(upgrade_icon[0]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
+                        mergeChars("str", 1, NORMAL), mergeChars(std::to_string(Tower::readDamage(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos().x(), event->pos().y());
+            }
+            //Upgrade #2
+            else if(upgrade_icon[1]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
+                        mergeChars("range", 1, NORMAL), mergeChars(std::to_string(Tower::readRange(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos().x(), event->pos().y());
+            }
+            //Upgrade #3
+            else if(upgrade_icon[2]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
+                        mergeChars("rate", 1, NORMAL), mergeChars(std::to_string(Tower::readRate(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos().x(), event->pos().y());
+            }
+
+
+            break;
     }
     repaint();
 }
@@ -435,7 +429,7 @@ void Game::mousePressEvent(QMouseEvent *event){
                 //set up a new game
                 newGame();
                 //disable tracking for better performance
-                setMouseTracking(false);
+                //setMouseTracking(false);
             }
             //Pressing the help button will activate the Help state
             else if(help_button->getRect()->contains(event->pos())){
@@ -452,8 +446,10 @@ void Game::mousePressEvent(QMouseEvent *event){
             //Pressing resume will continue the current game
             if(pauseButtons[0]->getRect()->contains(event->pos())){
                 //Resume game
-                setMouseTracking(false);
+                //setMouseTracking(false);
                 state = INGAME;
+                startTimers();
+
             }
             //Pressing Main Menu will return the user to the main menu
             else if(pauseButtons[1]->getRect()->contains(event->pos())){
@@ -499,9 +495,6 @@ void Game::mousePressEvent(QMouseEvent *event){
             if(towerOptions[i]->getRect()->contains(event->pos()))
                 curTowerOpt = i;
         }
-        /*if(upgrade_button->getRect()->contains(event->pos())){
-            //open upgrade window
-        }*/
         switch(curTowerOpt){
         case 0:
             if(fire_upgrade[0]->getRect()->contains(event->pos())){
@@ -543,7 +536,7 @@ void Game::mousePressEvent(QMouseEvent *event){
         //Pressing continue will start the next wave
         if(continue_button->getRect()->contains(event->pos())){
             //Resume game
-            setMouseTracking(false);
+            //setMouseTracking(false);
             newWave();
             state = INGAME;
         }
@@ -563,14 +556,16 @@ void Game::newGame(){
     wave_value = 0;
     newWave();
     score_value = 20;
-    //start the timer that will call the 'update loop'
+    //start the timer used for spawning events
     timerId = startTimer(10);
-    //Start the timer that will check for enemies within the towers range
-    //collisionTimer = startTimer(100);
+}
+
+void Game::startTimers(){
     //Start the timer that will update the enemies positions
-    //moveTimer = startTimer(25);
     QTimer::singleShot(30,this,SLOT(moveEvent()));
-    QTimer::singleShot(150,this,SLOT(test()));
+    //Start the timer that moves the damge number images
+    QTimer::singleShot(150,this,SLOT(moveDecals()));
+    //Start the timer that will check for enemies within the towers range
     QTimer::singleShot(30,this,SLOT(collisionEvent()));
 }
 
@@ -590,6 +585,7 @@ void Game::newWave(){
     enemyCount = spawnList.size();
 
     spawnTimer = startTimer(2000);
+    startTimers();
 }
 
 //A function to clear the existing game data
@@ -649,7 +645,6 @@ void Game::loadInGame(){
     towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_EARTH));
     towerOptHighlight = new Image(CONSTANTS::TOWEROPT_H);
-    upgrade_button = new Image(CONSTANTS::UPGRADE);
 
     //Upgrade Menu
     for(int i = 0; i<3; i++){
@@ -689,92 +684,92 @@ void Game::loadInGame(){
 }
 
 void Game::fillCharReferences(){
-    letterChars.push_back(new Image(CONSTANTS::CHAR_0));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_1));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_2));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_3));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_4));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_5));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_6));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_7));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_8));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_9));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_A));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_B));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_C));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_D));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_E));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_F));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_G));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_H));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_I));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_J));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_K));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_L));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_M));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_N));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_O));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_P));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_Q));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_R));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_S));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_T));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_U));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_V));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_W));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_X));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_Y));
-    letterChars.push_back(new Image(CONSTANTS::CHAR_Z));
+    letterChars.push_back(new Image(CHARS::CHAR_0));
+    letterChars.push_back(new Image(CHARS::CHAR_1));
+    letterChars.push_back(new Image(CHARS::CHAR_2));
+    letterChars.push_back(new Image(CHARS::CHAR_3));
+    letterChars.push_back(new Image(CHARS::CHAR_4));
+    letterChars.push_back(new Image(CHARS::CHAR_5));
+    letterChars.push_back(new Image(CHARS::CHAR_6));
+    letterChars.push_back(new Image(CHARS::CHAR_7));
+    letterChars.push_back(new Image(CHARS::CHAR_8));
+    letterChars.push_back(new Image(CHARS::CHAR_9));
+    letterChars.push_back(new Image(CHARS::CHAR_A));
+    letterChars.push_back(new Image(CHARS::CHAR_B));
+    letterChars.push_back(new Image(CHARS::CHAR_C));
+    letterChars.push_back(new Image(CHARS::CHAR_D));
+    letterChars.push_back(new Image(CHARS::CHAR_E));
+    letterChars.push_back(new Image(CHARS::CHAR_F));
+    letterChars.push_back(new Image(CHARS::CHAR_G));
+    letterChars.push_back(new Image(CHARS::CHAR_H));
+    letterChars.push_back(new Image(CHARS::CHAR_I));
+    letterChars.push_back(new Image(CHARS::CHAR_J));
+    letterChars.push_back(new Image(CHARS::CHAR_K));
+    letterChars.push_back(new Image(CHARS::CHAR_L));
+    letterChars.push_back(new Image(CHARS::CHAR_M));
+    letterChars.push_back(new Image(CHARS::CHAR_N));
+    letterChars.push_back(new Image(CHARS::CHAR_O));
+    letterChars.push_back(new Image(CHARS::CHAR_P));
+    letterChars.push_back(new Image(CHARS::CHAR_Q));
+    letterChars.push_back(new Image(CHARS::CHAR_R));
+    letterChars.push_back(new Image(CHARS::CHAR_S));
+    letterChars.push_back(new Image(CHARS::CHAR_T));
+    letterChars.push_back(new Image(CHARS::CHAR_U));
+    letterChars.push_back(new Image(CHARS::CHAR_V));
+    letterChars.push_back(new Image(CHARS::CHAR_W));
+    letterChars.push_back(new Image(CHARS::CHAR_X));
+    letterChars.push_back(new Image(CHARS::CHAR_Y));
+    letterChars.push_back(new Image(CHARS::CHAR_Z));
 
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_0_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_1_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_2_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_3_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_4_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_5_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_6_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_7_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_8_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_9_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_A_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_B_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_C_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_D_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_E_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_F_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_G_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_H_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_I_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_J_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_K_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_L_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_M_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_N_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_O_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_P_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Q_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_R_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_S_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_T_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_U_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_V_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_W_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_X_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Y_ACT));
-    letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Z_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_0_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_1_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_2_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_3_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_4_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_5_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_6_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_7_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_8_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_9_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_A_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_B_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_C_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_D_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_E_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_F_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_G_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_H_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_I_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_J_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_K_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_L_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_M_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_N_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_O_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_P_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_Q_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_R_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_S_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_T_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_U_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_V_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_W_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_X_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_Y_ACT));
+    letterCharsAct.push_back(new Image(CHARS::CHAR_Z_ACT));
 
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_0_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_1_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_2_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_3_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_4_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_5_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_6_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_7_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_8_RED));
-    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_9_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_0_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_1_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_2_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_3_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_4_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_5_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_6_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_7_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_8_RED));
+    letterCharsRed.push_back(new Image(CHARS::CHAR_9_RED));
 
-    specialChars.push_back(new Image(CONSTANTS::CHAR_SPACE));
+    specialChars.push_back(new Image(CHARS::CHAR_SPACE));
 }
 
 //A function to delete the ingame components
@@ -913,17 +908,12 @@ void Game::raycast(){
                 t->setCoolDown(true);
                 QTimer::singleShot(t->getCoolDown(),t,SLOT(testing()));
                 //damage the enemy
-                /*if(e->hasAnimation){
-                    killTimer(e->getDmgAnimation()->getTimer());
-                    e->hasAnimation = false;
-                }*/
                 e->inflictDamage(t->getDamage());
                 Image* damage = mergeChars(std::to_string(t->getDamage()),1,RED);
                 damage->getRect()->moveTo(e->getRect()->center().x()+damageDisplayOffset(generator), e->getRect()->top());
                 damageDisplays.push_back(damage);
                 QTimer::singleShot(1000,this,SLOT(removeDecal()));
 
-                //e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
                 qDebug() << "Health: " << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0){
@@ -947,8 +937,6 @@ void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
             //When deleting the enemy, award the player the appropriate points
-            //if(enemies[i]->hasAnimation)
-                //killTimer(enemies[i]->getDmgAnimation()->getTimer());
             updateScore(enemies[i]->getScore());
             delete enemies[i];
             enemies.erase(enemies.begin()+i);
@@ -1486,5 +1474,48 @@ void Game::createNavigationPath(){
         if(t->isPath())
             navPath[t->getPathID()-1] = t->getRect()->center();
     }
+}
+
+Game::ToolTip::ToolTip(Image* c, Image* c_a, Image* s, Image* s_u)
+{
+    cost = c;
+    cost_amount = c_a;
+    stat = s;
+    stat_upgrade = s_u;
+    background = new Image(TOOLTIP::BASE);
+}
+
+Game::ToolTip::~ToolTip(){
+    delete cost;
+    delete cost_amount;
+    delete background;
+    delete stat;
+    delete stat_upgrade;
+}
+
+void Game::ToolTip::moveTo(double x, double y){
+    //x and y correspond to the mosue coordinates so need to draw a rect to the bottom left of the coordinates
+    resizeBackground();
+    background->getRect()->moveTo(x-background->getRect()->width(), y);
+    stat->getRect()->moveTo(background->getRect()->x()+2, background->getRect()->y()+2);
+    stat_upgrade->getRect()->moveTo(stat->getRect()->right()+3, stat->getRect()->y());
+    cost->getRect()->moveTo(stat_upgrade->getRect()->right()+5, stat_upgrade->getRect()->y());
+    cost_amount->getRect()->moveTo(cost->getRect()->right()+3, cost->getRect()->y());
+}
+
+void Game::ToolTip::paint(QPainter *p){
+    p->drawImage(*background->getRect(), *background->getImage());
+    p->drawImage(*stat->getRect(), *stat->getImage());
+    p->drawImage(*stat_upgrade->getRect(), *stat_upgrade->getImage());
+    p->drawImage(*cost->getRect(), *cost->getImage());
+    p->drawImage(*cost_amount->getRect(), *cost_amount->getImage());
+}
+
+void Game::ToolTip::resizeBackground(){
+    int width = 2 + stat->getRect()->width() + 3 + stat_upgrade->getRect()->width() + 5 +
+            cost->getRect()->width() + 3 + cost_amount->getRect()->width();
+    int height = cost->getRect()->height() + 4;
+    background->setImage(background->getImage()->scaled(width, height, Qt::IgnoreAspectRatio));
+    background->setRect(background->getImage()->rect());
 }
 

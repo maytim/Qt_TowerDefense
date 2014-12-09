@@ -36,16 +36,9 @@ Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(fal
         type = EARTH;
 
     getRect()->moveTo(tile.topLeft());
-    animation = new Animation();
-    animation->addFrame(Image(TOWER::FIRE_FRAME_1,0.5), 100);
-    animation->addFrame(Image(TOWER::FIRE_FRAME_2,0.5), 100);
-    animation->addFrame(Image(TOWER::FIRE_FRAME_1,0.5), 100);
-    animation->addFrame(Image(TOWER::FIRE_FRAME_2,0.5), 100);
-
 }
 
 Tower::~Tower(){
-    delete animation;
 }
 
 Tower::TowerStats Tower::fire = Tower::TowerStats(500,1,40,10);
@@ -150,4 +143,44 @@ void Tower::upgradeSpeed(Type t, int change){
     }
 }
 
+int Tower::readDamage(Type t){
+    switch(t){
+        case FIRE:
+            return fire.strength;
+            break;
+        case ICE:
+            return ice.strength;
+            break;
+        case EARTH:
+            return earth.strength;
+            break;
+    }
+}
 
+int Tower::readRange(Type t){
+    switch(t){
+        case FIRE:
+            return fire.range;
+            break;
+        case ICE:
+            return ice.range;
+            break;
+        case EARTH:
+            return earth.range;
+            break;
+    }
+}
+
+int Tower::readRate(Type t){
+    switch(t){
+        case FIRE:
+            return fire.speed;
+            break;
+        case ICE:
+            return ice.speed;
+            break;
+        case EARTH:
+            return earth.speed;
+            break;
+    }
+}

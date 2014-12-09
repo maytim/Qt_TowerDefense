@@ -30,7 +30,7 @@
     @param QPointF p the spawn coordinates
 */
 Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
-     dead(false), score(10), spawnDelay(2000), faceRight(false) /*hasAnimation(false)*/
+     dead(false), score(10), spawnDelay(2000), faceRight(false)
 {
 
     //set animation Images
@@ -57,7 +57,6 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 Enemy::~Enemy(){
     delete leftAnimation;
     delete rightAnimation;
-   // delete damageAnimation;
 }
 
 /*
@@ -67,10 +66,6 @@ Enemy::~Enemy(){
 void Enemy::move(QPointF w){
     //temporary direction variables
     int x=0, y=0;
-    //if the waypoint is to the left/right of the enemy then change its x direction
-    //(w.rx() > getRect()->center().rx()) ? moveRight(x) : moveLeft(x);
-    //if the waypoint is above/below the enemy then change its y direction
-    //(w.ry() > getRect()->center().ry()) ? y=1 : y=-1;
 
     //Try to get the enemy to move x or y
     if(std::abs(w.rx() - getRect()->center().rx()) > 0.1 &&
@@ -105,8 +100,3 @@ Image Enemy::getAnimation() const{
     else
         return *leftAnimation;
 }
-
-/*void Enemy::paintDamageAnimation(QPainter& p){
-
-    p.drawImage(*damageAnimation->getCurrentFrame().getRect(), *damageAnimation->getCurrentFrame().getImage());
-}*/

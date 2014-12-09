@@ -28,7 +28,6 @@
 #include <QPointF>
 #include "image.h"
 #include "enemy.h"
-#include "animation.h"
 #include <QDebug>
 
 /*
@@ -66,11 +65,13 @@ public:
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
 
+    static int readDamage(Type t);
+    static int readRange(Type t);
+    static int readRate(Type t);
     static void upgradeDamage(Type t, int change);
     static void upgradeRange(Type t, int change);
     static void upgradeSpeed(Type t, int change);
 
-    Animation* getAnimation() const {return animation;}
 public slots:
     void testing(){setCoolDown(false);}
 private:
@@ -78,7 +79,6 @@ private:
     Type type;
     int timerID;
     bool coolDown;
-    Animation* animation;
 
     class TowerStats{
     public:
