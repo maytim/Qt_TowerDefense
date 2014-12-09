@@ -67,13 +67,13 @@ public:
     int getScore() const { return score; }
     int getSpawnDelay() const { return spawnDelay; }
     Image getAnimation() const;
-    Animation* getDmgAnimation() const { return damageAnimation; }
-    void addDamageAnimation( Animation* a){ damageAnimation = new Animation(*a); hasAnimation = true; }
-    void paintDamageAnimation(QPainter& p);
-    void damageEvent(int dmg_amount,  Animation* dmg_anim) { addDamageAnimation(dmg_anim); inflictDamage(dmg_amount); }
-    bool hasAnimation;
-    void centerDmgAnimation(){damageAnimation->moveCurrentFrame(getRect()->center());}
-    void resetDmgAnimation() {delete damageAnimation; damageAnimation = nullptr; hasAnimation = false;}
+    //Animation* getDmgAnimation() const { return damageAnimation; }
+    //void addDamageAnimation( Animation* a){ damageAnimation = new Animation(*a); hasAnimation = true; }
+    //void paintDamageAnimation(QPainter& p);
+    //void damageEvent(int dmg_amount,  Animation* dmg_anim) { addDamageAnimation(dmg_anim); inflictDamage(dmg_amount); }
+    //bool hasAnimation;
+    //void centerDmgAnimation(){damageAnimation->moveCurrentFrame(getRect()->center());}
+    //void resetDmgAnimation() {delete damageAnimation; damageAnimation = nullptr; hasAnimation = false;}
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
@@ -91,7 +91,7 @@ private:
     void moveLeft(int& x);
     void moveRight(int& x);
 
-    Animation* damageAnimation;
+    //Animation* damageAnimation;
 };
 
 #endif // ENEMY_H

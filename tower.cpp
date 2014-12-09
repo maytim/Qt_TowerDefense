@@ -48,9 +48,9 @@ Tower::~Tower(){
     delete animation;
 }
 
-Tower::TowerStats Tower::fire = Tower::TowerStats(1000,1,40,10);
+Tower::TowerStats Tower::fire = Tower::TowerStats(500,1,40,10);
 Tower::TowerStats Tower::ice = Tower::TowerStats(1000,3,40,10);
-Tower::TowerStats Tower::earth = Tower::TowerStats(1000,4,40,10);
+Tower::TowerStats Tower::earth = Tower::TowerStats(3000,5,60,10);
 
 int Tower::getDamage() const{
     switch(type){

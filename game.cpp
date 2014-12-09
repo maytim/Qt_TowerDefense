@@ -39,7 +39,8 @@
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) , enemyCount(0)
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) ,
+    enemyCount(0), generator(SEED), damageDisplayOffset(-2,2)
 {
     setWindowTitle("Elemental Defense");
     setFixedSize(CONSTANTS::SCREEN_WIDTH, CONSTANTS::SCREEN_HEIGHT);
@@ -119,11 +120,23 @@ void Game::paintEvent(QPaintEvent *event){
             painter.drawImage(*towerOptions[curTowerOpt]->getRect(), *towerOptHighlight->getImage());
 
             //Upgrade menu
-            for(auto& u : fire_upgrade)
-                painter.drawImage(*u->getRect(), *u->getImage());
-            for(auto& i : fire_upgrade_icon)
+            switch(curTowerOpt){
+                case 0:
+                    for(auto& u : fire_upgrade)
+                        painter.drawImage(*u->getRect(), *u->getImage());
+                    break;
+                case 1:
+                    for(auto& u : ice_upgrade)
+                        painter.drawImage(*u->getRect(), *u->getImage());
+                    break;
+                case 2:
+                    for(auto& u : earth_upgrade)
+                        painter.drawImage(*u->getRect(), *u->getImage());
+                    break;
+            }
+
+            for(auto& i : upgrade_icon)
                 painter.drawImage(*i->getRect(), *i->getImage());
-            painter.drawImage(*upgrade_button->getRect(), *upgrade_button->getImage());
 
             //Draw the map tiles
             for(auto& t : map){
@@ -148,6 +161,11 @@ void Game::paintEvent(QPaintEvent *event){
             for(const auto t : towers){
                 painter.drawImage(*t->getRect(), *t->getImage());
             }
+
+            for(const auto d : damageDisplays){
+                painter.drawImage(*d->getRect(), *d->getImage());
+            }
+
             break;
         case CLEARED:
             paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,(width()-(13+std::to_string(getWave()).length())*20)/2,100,false);
@@ -189,24 +207,24 @@ void Game::paintEvent(QPaintEvent *event){
 void Game::timerEvent(QTimerEvent *event){
     //If the game is active then update the enemy positions, collision events, and spawn enemies
     if(state == INGAME){
-        if(event->timerId() == moveTimer){
+        /*if(event->timerId() == moveTimer){
             cleanEnemyList();
             moveEnemies();
-        }
-        for(auto& t : towers){
+        }*/
+        /*for(auto& t : towers){
             if(event->timerId()==t->getTimer()){
                 killTimer(t->getTimer());
                 qDebug() << "Cooldown is false";
                 t->setCoolDown(false);
             }
-        }
-        if(event->timerId() == collisionTimer){
+        }*/
+        /*if(event->timerId() == collisionTimer){
             //killTimer(collisionTimer);
             raycast();
             //cleanEnemyList();
             //collisionTimer = startTimer(150);
             //qDebug() << "Collision timer id: "<<collisionTimer;
-        }
+        }*/
         /*for(auto& e : enemies){
             if(e->hasAnimation){
                 //qDebug() << "  e hasAnimation";
@@ -481,18 +499,45 @@ void Game::mousePressEvent(QMouseEvent *event){
             if(towerOptions[i]->getRect()->contains(event->pos()))
                 curTowerOpt = i;
         }
-        if(upgrade_button->getRect()->contains(event->pos())){
+        /*if(upgrade_button->getRect()->contains(event->pos())){
             //open upgrade window
-        }
-        if(fire_upgrade[0]->getRect()->contains(event->pos())){
-            Tower::upgradeDamage(FIRE,1);
-        }
-        if(fire_upgrade[1]->getRect()->contains(event->pos())){
+        }*/
+        switch(curTowerOpt){
+        case 0:
+            if(fire_upgrade[0]->getRect()->contains(event->pos())){
+                Tower::upgradeDamage(FIRE,1);
+            }
+            else if(fire_upgrade[1]->getRect()->contains(event->pos())){
 
-        }
-        if(fire_upgrade[2]->getRect()->contains(event->pos())){
+            }
+            else if(fire_upgrade[2]->getRect()->contains(event->pos())){
 
+            }
+            break;
+        case 1:
+            if(ice_upgrade[0]->getRect()->contains(event->pos())){
+                Tower::upgradeDamage(ICE,1);
+            }
+            else if(ice_upgrade[1]->getRect()->contains(event->pos())){
+
+            }
+            else if(ice_upgrade[2]->getRect()->contains(event->pos())){
+
+            }
+            break;
+        case 2:
+            if(earth_upgrade[0]->getRect()->contains(event->pos())){
+                Tower::upgradeDamage(EARTH,1);
+            }
+            else if(earth_upgrade[1]->getRect()->contains(event->pos())){
+
+            }
+            else if(earth_upgrade[2]->getRect()->contains(event->pos())){
+
+            }
+            break;
         }
+
         break;
     case CLEARED:
         //Pressing continue will start the next wave
@@ -521,9 +566,12 @@ void Game::newGame(){
     //start the timer that will call the 'update loop'
     timerId = startTimer(10);
     //Start the timer that will check for enemies within the towers range
-    collisionTimer = startTimer(100);
+    //collisionTimer = startTimer(100);
     //Start the timer that will update the enemies positions
-    moveTimer = startTimer(25);
+    //moveTimer = startTimer(25);
+    QTimer::singleShot(30,this,SLOT(moveEvent()));
+    QTimer::singleShot(150,this,SLOT(test()));
+    QTimer::singleShot(30,this,SLOT(collisionEvent()));
 }
 
 void Game::newWave(){
@@ -561,12 +609,12 @@ void Game::clearGame(){
 //A function to load the menu components
 void Game::loadMenu(){
     //load the corresponding images for each of the components
-    title_line1 = mergeChars("tower",0.125,false);
-    title_line2 = mergeChars("defense",0.125,false);
+    title_line1 = mergeChars("tower",0.125,NORMAL);
+    title_line2 = mergeChars("defense",0.125,NORMAL);
 
-    start_button = new Button(mergeChars("start",0.25,false), mergeChars("start",0.25,true));
-    help_button = new Button(mergeChars("help",0.25,false), mergeChars("help",0.25,true));
-    quit_button = new Button(mergeChars("quit",0.25,false), mergeChars("quit",0.25,true));
+    start_button = new Button(mergeChars("start",0.25,NORMAL), mergeChars("start",0.25,ACTIVE));
+    help_button = new Button(mergeChars("help",0.25,NORMAL), mergeChars("help",0.25,ACTIVE));
+    quit_button = new Button(mergeChars("quit",0.25,NORMAL), mergeChars("quit",0.25,ACTIVE));
 
     int const top_margin = (height() - (title_line1->getRect()->height() + title_line2->getRect()->height() +
                            start_button->getRect()->height() + help_button->getRect()->height() +
@@ -593,8 +641,8 @@ void Game::cleanMenu(){
 //A function to load the ingame components
 void Game::loadInGame(){
     //load the corresponding images for each of the components
-    score_title = mergeChars("score",1,false);
-    wave_title = mergeChars("wave",1,false);
+    score_title = mergeChars("score",1,NORMAL);
+    wave_title = mergeChars("wave",1,NORMAL);
 
     tileHighlight = new Image(CONSTANTS::HIGHLIGHT_TILE);
     towerOptions.push_back(new Image(CONSTANTS::TOWER_FIRE));
@@ -604,13 +652,16 @@ void Game::loadInGame(){
     upgrade_button = new Image(CONSTANTS::UPGRADE);
 
     //Upgrade Menu
-    for(int i = 0; i<3; i++)
+    for(int i = 0; i<3; i++){
         fire_upgrade.push_back(new Image(CONSTANTS::UPGRADE_FIRE_BASE));
-    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_STRENGTH));
-    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RANGE));
-    fire_upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RATE));
+        ice_upgrade.push_back(new Image(CONSTANTS::UPGRADE_ICE_BASE));
+        earth_upgrade.push_back(new Image(CONSTANTS::UPGRADE_EARTH_BASE));
+    }
+    upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_STRENGTH));
+    upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RANGE));
+    upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RATE));
 
-    continue_button = new Button(mergeChars("continue",0.25,false), mergeChars("continue",0.25,true));
+    continue_button = new Button(mergeChars("continue",0.25,NORMAL), mergeChars("continue",0.25,ACTIVE));
 
     //position the components
     wave_title->getRect()->moveTo(10,10);
@@ -618,14 +669,16 @@ void Game::loadInGame(){
     towerOptions[0]->getRect()->moveTo(width()-towerOptions[0]->getRect()->width()-5, 50);
     towerOptions[1]->getRect()->moveTo(width()-towerOptions[1]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height());
     towerOptions[2]->getRect()->moveTo(width()-towerOptions[2]->getRect()->width()-5, 50 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height());
-    upgrade_button->getRect()->moveTo(width()-upgrade_button->getRect()->width()-5, 150 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height() + towerOptions[2]->getRect()->height());
 
     //Upgrade Menu
-    int y = 320;
+    int x = width()-towerOptions[0]->getRect()->width()-5;
+    int y = 75 + towerOptions[0]->getRect()->height() + towerOptions[1]->getRect()->height() + towerOptions[2]->getRect()->height();
     for(size_t i = 0, s = fire_upgrade.size(); i < s; i++){
-        fire_upgrade[i]->getRect()->moveTo(5, y);
-        fire_upgrade_icon[i]->getRect()->moveTo(5, y);
-        y+= 22;
+        fire_upgrade[i]->getRect()->moveTo(x+(fire_upgrade[i]->getRect()->width())/4, y);
+        ice_upgrade[i]->getRect()->moveTo(x+(fire_upgrade[i]->getRect()->width())/4, y);
+        earth_upgrade[i]->getRect()->moveTo(x+(fire_upgrade[i]->getRect()->width())/4, y);
+        upgrade_icon[i]->getRect()->moveTo(x+(fire_upgrade[i]->getRect()->width())/4, y);
+        y+= fire_upgrade[i]->getRect()->height()+2;
     }
 
     //Cleared items
@@ -710,6 +763,17 @@ void Game::fillCharReferences(){
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Y_ACT));
     letterCharsAct.push_back(new Image(CONSTANTS::CHAR_Z_ACT));
 
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_0_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_1_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_2_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_3_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_4_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_5_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_6_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_7_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_8_RED));
+    letterCharsRed.push_back(new Image(CONSTANTS::CHAR_9_RED));
+
     specialChars.push_back(new Image(CONSTANTS::CHAR_SPACE));
 }
 
@@ -728,8 +792,8 @@ void Game::cleanInGame(){
 //A function to load the pause components
 void Game::loadPause(){
     //load the corresponding images for each of the components
-    pauseButtons.push_back(new Button(mergeChars("resume",0.25,false), mergeChars("resume",0.25,true)));
-    pauseButtons.push_back(new Button(mergeChars("main menu",0.25,false), mergeChars("main menu",0.25,true)));
+    pauseButtons.push_back(new Button(mergeChars("resume",0.25,NORMAL), mergeChars("resume",0.25,ACTIVE)));
+    pauseButtons.push_back(new Button(mergeChars("main menu",0.25,NORMAL), mergeChars("main menu",0.25,ACTIVE)));
 
     //position the components
     int const top_margin = (height() - (pauseButtons[0]->getRect()->height() + pauseButtons[1]->getRect()->height()))/2;
@@ -749,7 +813,7 @@ void Game::loadHelp(){
     //load the corresponding images for each of the components
     arrows.push_back(new Button(CONSTANTS::LEFT_PATH, CONSTANTS::LEFT_H_PATH, 0.25));
     arrows.push_back(new Button(CONSTANTS::RIGHT_PATH, CONSTANTS::RIGHT_H_PATH, 0.25));
-    arrows.push_back(new Button(mergeChars("back",0.5,false), mergeChars("back",0.5,true)));
+    arrows.push_back(new Button(mergeChars("back",0.5,NORMAL), mergeChars("back",0.5,ACTIVE)));
 
     helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_1));
     helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_2));
@@ -845,18 +909,20 @@ void Game::raycast(){
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
             //If the line's distance is less than the tower's range then that enemy can be attacked
             if(distance < t->getRange() && !t->isCoolDown()){
-                qDebug() <<"found new target";
                 //Cool down tower
                 t->setCoolDown(true);
-                //t->setTimer(startTimer(t->getCoolDown()));
-                QTimer::singleShot(1000,t,SLOT(testing()));
-                qDebug() << "Tower time: " << t->getTimer();
+                QTimer::singleShot(t->getCoolDown(),t,SLOT(testing()));
                 //damage the enemy
                 /*if(e->hasAnimation){
                     killTimer(e->getDmgAnimation()->getTimer());
                     e->hasAnimation = false;
                 }*/
-                e->damageEvent(t->getDamage(), t->getAnimation());
+                e->inflictDamage(t->getDamage());
+                Image* damage = mergeChars(std::to_string(t->getDamage()),1,RED);
+                damage->getRect()->moveTo(e->getRect()->center().x()+damageDisplayOffset(generator), e->getRect()->top());
+                damageDisplays.push_back(damage);
+                QTimer::singleShot(1000,this,SLOT(removeDecal()));
+
                 //e->getDmgAnimation()->setTimer(startTimer(e->getDmgAnimation()->getCurrentFrameLength()));
                 qDebug() << "Health: " << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
@@ -883,7 +949,6 @@ void Game::cleanEnemyList(){
             //When deleting the enemy, award the player the appropriate points
             //if(enemies[i]->hasAnimation)
                 //killTimer(enemies[i]->getDmgAnimation()->getTimer());
-            qDebug()<< "Enemy timer killed";
             updateScore(enemies[i]->getScore());
             delete enemies[i];
             enemies.erase(enemies.begin()+i);
@@ -891,12 +956,12 @@ void Game::cleanEnemyList(){
     }
 }
 
-Image* Game::mergeChars(std::string word, double scale, bool active){
+Image* Game::mergeChars(std::string word, double scale, Chars c){
     //Create an Image to append to
     Image* image = new Image();
 
     for(size_t i = 0; i < word.length(); i++){
-        if(active){
+        if(c == ACTIVE){
             switch(word[i]){
             case '0':
                 appendChar(letterCharsAct[0], scale, image);
@@ -1011,7 +1076,7 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
                 break;
         }
         }
-        else{
+        else if(c == NORMAL){
             switch(word[i]){
                 case '0':
                     appendChar(letterChars[0], scale, image);
@@ -1123,6 +1188,40 @@ Image* Game::mergeChars(std::string word, double scale, bool active){
                     break;
                 case ' ':
                     appendChar(specialChars[0], scale, image);
+                    break;
+            }
+        }
+        else if(c == RED){
+            switch(word[i]){
+                case '0':
+                    appendChar(letterCharsRed[0], scale, image);
+                    break;
+                case '1':
+                    appendChar(letterCharsRed[1], scale, image);
+                    break;
+                case '2':
+                    appendChar(letterCharsRed[2], scale, image);
+                    break;
+                case '3':
+                    appendChar(letterCharsRed[3], scale, image);
+                    break;
+                case '4':
+                    appendChar(letterCharsRed[4], scale, image);
+                    break;
+                case '5':
+                    appendChar(letterCharsRed[5], scale, image);
+                    break;
+                case '6':
+                    appendChar(letterCharsRed[6], scale, image);
+                    break;
+                case '7':
+                    appendChar(letterCharsRed[7], scale, image);
+                    break;
+                case '8':
+                    appendChar(letterCharsRed[8], scale, image);
+                    break;
+                case '9':
+                    appendChar(letterCharsRed[9], scale, image);
                     break;
             }
         }

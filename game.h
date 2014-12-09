@@ -32,10 +32,15 @@
 #include "tower.h"
 #include "wavegenerator.h"
 #include <QWidget>
-
+#include <deque>
+#include <QTimer>
+#include <random>
 
 //Enum for all of the different game states
 enum State {MENU, INGAME, CLEARED, PAUSED, HELP};
+
+//Character types to use in mergeChars
+enum Chars {NORMAL, ACTIVE, RED};
 
 /*
     @class Game
@@ -80,7 +85,11 @@ public:
 
     QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 public slots:
-    void test(Tower* t){qDebug()<<"text"; t->setCoolDown(false);}
+    void test(){for(auto& d : damageDisplays)d->getRect()->translate(0,-1); if(state==INGAME)QTimer::singleShot(150,this,SLOT(test()));}
+    void removeDecal(){Image* front = damageDisplays.front(); damageDisplays.pop_front(); delete front;}
+    void moveEvent(){cleanEnemyList(); moveEnemies(); if(state==INGAME)QTimer::singleShot(30,this,SLOT(moveEvent()));}
+    void collisionEvent(){raycast(); if(state == INGAME)QTimer::singleShot(30,this,SLOT(collisionEvent()));}
+    void spawner();
 private:
     //Functions to setup the game states' componenets
     void fillCharReferences();
@@ -99,11 +108,11 @@ private:
     //A helper function to draw the scores using Images
     void paintChar(std::string,double,QPainter&,int,int,bool);
     void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
-    Image* mergeChars(std::string,double,bool);
+    Image* mergeChars(std::string,double,Chars);
     void appendChar(Image* character, double scale, Image* i);
 
     //Spawning function
-    void spawner();
+    //void spawner();
 
     void newWave();
 
@@ -131,6 +140,10 @@ private:
     std::vector<Tile*> map;
     std::vector<Tower*> towers;
 
+    DEFAULT generator;
+    std::uniform_int_distribution<int> damageDisplayOffset;
+    std::deque<Image*> damageDisplays;
+
     //Menu components
     Image* title_line1;
     Image* title_line2;
@@ -145,13 +158,16 @@ private:
     Button* continue_button;
     std::vector<Image*> letterChars;
     std::vector<Image*> letterCharsAct;
+    std::vector<Image*> letterCharsRed;
     std::vector<Image*> specialChars;
     std::vector<Image*> towerOptions;
     int curTowerOpt;
     Image* towerOptHighlight;
     Image* upgrade_button;
     std::vector<Image*> fire_upgrade;
-    std::vector<Image*> fire_upgrade_icon;
+    std::vector<Image*> upgrade_icon;
+    std::vector<Image*> ice_upgrade;
+    std::vector<Image*> earth_upgrade;
 
     //Pause components
     std::vector<Button*> pauseButtons;

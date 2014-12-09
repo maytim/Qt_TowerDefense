@@ -45,8 +45,8 @@ namespace CONSTANTS{
     const QString HELP_IMAGE_4 = "C:/Qt/Projects/GameProject/help4.png";
     const QString HELP_IMAGE_5 = "C:/Qt/Projects/GameProject/help5.png";
     const QString HELP_IMAGE_6 = "C:/Qt/Projects/GameProject/help6.png";
-    const QString DIRT_TILE = "C:/Qt/Projects/GameProject/dirt_tile.png";
-    const QString GRASS_TILE = "C:/Qt/Projects/GameProject/grass_tile.png";
+    const QString DIRT_TILE = "C:/Qt/Projects/GameProject/dirt_tile1.png";
+    const QString GRASS_TILE = "C:/Qt/Projects/GameProject/grass_tile1.png";
     const QString HIGHLIGHT_TILE = "C:/Qt/Projects/GameProject/tile_highlight.png";
     const QString TOWER_FIRE = "C:/Qt/Projects/GameProject/fire.png";
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
@@ -54,6 +54,8 @@ namespace CONSTANTS{
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
     const QString UPGRADE = "C:/Qt/Projects/GameProject/upgrade_button.png";
     const QString UPGRADE_FIRE_BASE = "C:/Qt/Projects/GameProject/fire_icon_base.png";
+    const QString UPGRADE_ICE_BASE = "C:/Qt/Projects/GameProject/ice_icon_base.png";
+    const QString UPGRADE_EARTH_BASE = "C:/Qt/Projects/GameProject/earth_icon_base.png";
     const QString UPGRADE_STRENGTH = "C:/Qt/Projects/GameProject/strength_icon.png";
     const QString UPGRADE_RANGE = "C:/Qt/Projects/GameProject/target_icon.png";
     const QString UPGRADE_RATE = "C:/Qt/Projects/GameProject/time_icon.png";
@@ -132,6 +134,17 @@ namespace CONSTANTS{
     const QString CHAR_Y_ACT = "C:/Qt/Projects/GameProject/characters/active/Y.png";
     const QString CHAR_Z_ACT = "C:/Qt/Projects/GameProject/characters/active/Z.png";
     const QString CHAR_SPACE = "C:/Qt/Projects/GameProject/characters/space.png";
+
+    const QString CHAR_0_RED = "C:/Qt/Projects/GameProject/characters/red/0.png";
+    const QString CHAR_1_RED = "C:/Qt/Projects/GameProject/characters/red/1.png";
+    const QString CHAR_2_RED = "C:/Qt/Projects/GameProject/characters/red/2.png";
+    const QString CHAR_3_RED = "C:/Qt/Projects/GameProject/characters/red/3.png";
+    const QString CHAR_4_RED = "C:/Qt/Projects/GameProject/characters/red/4.png";
+    const QString CHAR_5_RED = "C:/Qt/Projects/GameProject/characters/red/5.png";
+    const QString CHAR_6_RED = "C:/Qt/Projects/GameProject/characters/red/6.png";
+    const QString CHAR_7_RED = "C:/Qt/Projects/GameProject/characters/red/7.png";
+    const QString CHAR_8_RED = "C:/Qt/Projects/GameProject/characters/red/8.png";
+    const QString CHAR_9_RED = "C:/Qt/Projects/GameProject/characters/red/9.png";
 
     //map constants
     const int TILE_ROW = 8;

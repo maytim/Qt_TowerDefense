@@ -30,17 +30,19 @@
     @param QPointF p the spawn coordinates
 */
 Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
-    health(3), dead(false), score(10), spawnDelay(2000), faceRight(false), hasAnimation(false)
+     dead(false), score(10), spawnDelay(2000), faceRight(false) /*hasAnimation(false)*/
 {
 
     //set animation Images
     if(type == ENEMY::NORMAL){
         leftAnimation = new Image(ENEMY::NORMAL_L);
         rightAnimation = new Image(ENEMY::NORMAL_R);
+        health = 3;
     }
     else if(type == ENEMY::BADASS){
         leftAnimation = new Image(ENEMY::BADASS_L);
         rightAnimation = new Image(ENEMY::BADASS_R);
+        health = 10;
     }
 
     //set the animation image to be left by default
@@ -55,7 +57,7 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 Enemy::~Enemy(){
     delete leftAnimation;
     delete rightAnimation;
-    delete damageAnimation;
+   // delete damageAnimation;
 }
 
 /*
@@ -104,7 +106,7 @@ Image Enemy::getAnimation() const{
         return *leftAnimation;
 }
 
-void Enemy::paintDamageAnimation(QPainter& p){
+/*void Enemy::paintDamageAnimation(QPainter& p){
 
     p.drawImage(*damageAnimation->getCurrentFrame().getRect(), *damageAnimation->getCurrentFrame().getImage());
-}
+}*/

@@ -72,7 +72,7 @@ public:
 
     Animation* getAnimation() const {return animation;}
 public slots:
-    void testing(){qDebug()<<"text"; setCoolDown(false);}
+    void testing(){setCoolDown(false);}
 private:
     //Attacking stats
     Type type;
