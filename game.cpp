@@ -200,7 +200,7 @@ void Game::paintEvent(QPaintEvent *event){
     milliseconds and will update enemy positions if ingame or repaint the game.
 */
 void Game::timerEvent(QTimerEvent *event){
-    //If the game is active then update the enemy positions, collision events, and spawn enemies
+    //If the game is active then use the paintTimer to call repaint() on a loop
     if(state == INGAME){
         if(event->timerId() == spawnTimer)
             spawner();
@@ -244,7 +244,6 @@ void Game::moveEnemies(){
         //If the enemy has reached the final waypoint then don't take any action
         if(e->getRect()->contains(navPath[CONSTANTS::PATH_TILE_COUNT - 1].toPoint())){
             //REACHED END
-            setMouseTracking(true);
             state = MENU;
             break;
         }
@@ -270,8 +269,6 @@ void Game::keyPressEvent(QKeyEvent* event){
             case Qt::Key_P:
                 {
                     state = PAUSED;
-                    //Enable mouse tracking so that the buttons will be interactive
-                    setMouseTracking(true);
                     break;
                 }
             //The 'ESC' key closes the program
@@ -391,28 +388,33 @@ void Game::mouseMoveEvent(QMouseEvent *event){
 
             //Upgrade #1
             if(upgrade_icon[0]->getRect()->contains(event->pos())){
-                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
-                        mergeChars("str", 1, NORMAL), mergeChars(std::to_string(Tower::readDamage(curTowerType)), 1, ACTIVE));
-                tooltip->moveTo(event->pos().x(), event->pos().y());
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getDamageCost(curTowerType)), 1, ACTIVE),
+                                      mergeChars("str", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getDamage(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
             }
             //Upgrade #2
             else if(upgrade_icon[1]->getRect()->contains(event->pos())){
-                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
-                        mergeChars("range", 1, NORMAL), mergeChars(std::to_string(Tower::readRange(curTowerType)), 1, ACTIVE));
-                tooltip->moveTo(event->pos().x(), event->pos().y());
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getRangeCost(curTowerType)), 1, ACTIVE),
+                                      mergeChars("range", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getRange(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
             }
             //Upgrade #3
             else if(upgrade_icon[2]->getRect()->contains(event->pos())){
-                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL), mergeChars(std::to_string(10), 1, ACTIVE),
-                        mergeChars("rate", 1, NORMAL), mergeChars(std::to_string(Tower::readRate(curTowerType)), 1, ACTIVE));
-                tooltip->moveTo(event->pos().x(), event->pos().y());
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getRateCost(curTowerType)), 1, ACTIVE),
+                                      mergeChars("rate", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getCoolDown(curTowerType)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
             }
-
-
             break;
     }
     repaint();
 }
+
 
 /*
     mousePressEvent
@@ -428,8 +430,6 @@ void Game::mousePressEvent(QMouseEvent *event){
                 state = INGAME;
                 //set up a new game
                 newGame();
-                //disable tracking for better performance
-                //setMouseTracking(false);
             }
             //Pressing the help button will activate the Help state
             else if(help_button->getRect()->contains(event->pos())){
@@ -446,7 +446,6 @@ void Game::mousePressEvent(QMouseEvent *event){
             //Pressing resume will continue the current game
             if(pauseButtons[0]->getRect()->contains(event->pos())){
                 //Resume game
-                //setMouseTracking(false);
                 state = INGAME;
                 startTimers();
 
@@ -454,8 +453,7 @@ void Game::mousePressEvent(QMouseEvent *event){
             //Pressing Main Menu will return the user to the main menu
             else if(pauseButtons[1]->getRect()->contains(event->pos())){
                 //Return to main menu
-                setMouseTracking(true);
-                killTimer(timerId);
+                killTimer(paintTimer);
                 state = MENU;
             }
             break;
@@ -495,40 +493,48 @@ void Game::mousePressEvent(QMouseEvent *event){
             if(towerOptions[i]->getRect()->contains(event->pos()))
                 curTowerOpt = i;
         }
+        Type curTowerType;
         switch(curTowerOpt){
-        case 0:
-            if(fire_upgrade[0]->getRect()->contains(event->pos())){
-                Tower::upgradeDamage(FIRE,1);
-            }
-            else if(fire_upgrade[1]->getRect()->contains(event->pos())){
+            case 0:
+                curTowerType = FIRE;
+                break;
+            case 1:
+                curTowerType = ICE;
+                break;
+            case 2:
+                curTowerType = EARTH;
+                break;
+        }
 
-            }
-            else if(fire_upgrade[2]->getRect()->contains(event->pos())){
-
-            }
-            break;
-        case 1:
-            if(ice_upgrade[0]->getRect()->contains(event->pos())){
-                Tower::upgradeDamage(ICE,1);
-            }
-            else if(ice_upgrade[1]->getRect()->contains(event->pos())){
-
-            }
-            else if(ice_upgrade[2]->getRect()->contains(event->pos())){
-
-            }
-            break;
-        case 2:
-            if(earth_upgrade[0]->getRect()->contains(event->pos())){
-                Tower::upgradeDamage(EARTH,1);
-            }
-            else if(earth_upgrade[1]->getRect()->contains(event->pos())){
-
-            }
-            else if(earth_upgrade[2]->getRect()->contains(event->pos())){
-
-            }
-            break;
+        //Upgrade #1
+        if(getScore() > Tower::getDamageCost(curTowerType) && upgrade_icon[0]->getRect()->contains(event->pos())){
+            updateScore(-Tower::getDamageCost(curTowerType));
+            Tower::upgradeDamage(curTowerType,1);
+            tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getDamageCost(curTowerType)), 1, ACTIVE),
+                                  mergeChars("str", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getDamage(curTowerType)), 1, ACTIVE));
+            tooltip->moveTo(event->pos());
+        }
+        //Upgrade #2
+        else if(getScore() > Tower::getRangeCost(curTowerType) && upgrade_icon[1]->getRect()->contains(event->pos())){
+            updateScore(-Tower::getRangeCost(curTowerType));
+            Tower::upgradeRange(curTowerType, 1);
+            tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getRangeCost(curTowerType)), 1, ACTIVE),
+                                  mergeChars("range", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getRange(curTowerType)), 1, ACTIVE));
+            tooltip->moveTo(event->pos());
+        }
+        //Upgrade #3
+        else if(getScore() > Tower::getRateCost(curTowerType) && upgrade_icon[2]->getRect()->contains(event->pos())){
+            updateScore(-Tower::getRateCost(curTowerType));
+            Tower::upgradeSpeed(curTowerType, 1);
+            tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getRateCost(curTowerType)), 1, ACTIVE),
+                                  mergeChars("rate", 1, NORMAL),
+                                  mergeChars(std::to_string(Tower::getCoolDown(curTowerType)), 1, ACTIVE));
+            tooltip->moveTo(event->pos());
         }
 
         break;
@@ -536,7 +542,6 @@ void Game::mousePressEvent(QMouseEvent *event){
         //Pressing continue will start the next wave
         if(continue_button->getRect()->contains(event->pos())){
             //Resume game
-            //setMouseTracking(false);
             newWave();
             state = INGAME;
         }
@@ -557,7 +562,7 @@ void Game::newGame(){
     newWave();
     score_value = 20;
     //start the timer used for spawning events
-    timerId = startTimer(10);
+    paintTimer = startTimer(10);
 }
 
 void Game::startTimers(){
@@ -600,6 +605,8 @@ void Game::clearGame(){
         t->setOccupied(false);
     }
     spawnList.clear();
+    //Reset the upgrade stats
+    Tower::resetUpgrades();
 }
 
 //A function to load the menu components
@@ -903,13 +910,13 @@ void Game::raycast(){
             //Draw a line between each tower and all of the enemies
             int distance = QLineF(t->getRect()->center(), e->getRect()->center()).length();
             //If the line's distance is less than the tower's range then that enemy can be attacked
-            if(distance < t->getRange() && !t->isCoolDown()){
+            if(distance < t->getRange(t->getType()) && !t->isCoolDown()){
                 //Cool down tower
                 t->setCoolDown(true);
-                QTimer::singleShot(t->getCoolDown(),t,SLOT(testing()));
+                QTimer::singleShot(t->getCoolDown(t->getType()),t,SLOT(testing()));
                 //damage the enemy
-                e->inflictDamage(t->getDamage());
-                Image* damage = mergeChars(std::to_string(t->getDamage()),1,RED);
+                e->inflictDamage(t->getDamage(t->getType()));
+                Image* damage = mergeChars(std::to_string(t->getDamage(t->getType())),1,RED);
                 damage->getRect()->moveTo(e->getRect()->center().x()+damageDisplayOffset(generator), e->getRect()->top());
                 damageDisplays.push_back(damage);
                 QTimer::singleShot(1000,this,SLOT(removeDecal()));
@@ -921,10 +928,8 @@ void Game::raycast(){
                     enemyCount--;
                     cleanEnemyList();
                     //End wave
-                    if(enemyCount == 0){
+                    if(enemyCount == 0)
                         state = CLEARED;
-                        setMouseTracking(true);
-                    }
                 }
                 break;
             }
@@ -1493,7 +1498,9 @@ Game::ToolTip::~ToolTip(){
     delete stat_upgrade;
 }
 
-void Game::ToolTip::moveTo(double x, double y){
+void Game::ToolTip::moveTo(QPointF position){
+    int x = position.x();
+    int y = position.y();
     //x and y correspond to the mosue coordinates so need to draw a rect to the bottom left of the coordinates
     resizeBackground();
     background->getRect()->moveTo(x-background->getRect()->width(), y);

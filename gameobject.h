@@ -52,7 +52,6 @@ namespace CONSTANTS{
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
     const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
-    const QString UPGRADE = "C:/Qt/Projects/GameProject/upgrade_button.png";
     const QString UPGRADE_FIRE_BASE = "C:/Qt/Projects/GameProject/fire_icon_base.png";
     const QString UPGRADE_ICE_BASE = "C:/Qt/Projects/GameProject/ice_icon_base.png";
     const QString UPGRADE_EARTH_BASE = "C:/Qt/Projects/GameProject/earth_icon_base.png";

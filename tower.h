@@ -55,23 +55,26 @@ public:
     Tower(QString fileName, QRect tile);
     ~Tower();
     //Getters
-    int getDamage() const;
-    int getRange() const;
+    //int getDamage() const;
+    //int getRange() const;
     int getTimer() const { return timerID; }
     bool isCoolDown() const { return coolDown; }
-    int getCoolDown() const;
-    int getCost() const;
+    //int getCoolDown() const;
+    Type getType() const { return type; }
 
     void setTimer(int id) { timerID = id; }
     void setCoolDown(bool c) { coolDown = c; }
 
-    static int readDamage(Type t);
-    static int readRange(Type t);
-    static int readRate(Type t);
+    static int getDamageCost(Type t);
+    static int getRangeCost(Type t);
+    static int getRateCost(Type t);
+    static int getDamage(Type t);
+    static int getRange(Type t);
+    static int getCoolDown(Type t);
     static void upgradeDamage(Type t, int change);
     static void upgradeRange(Type t, int change);
     static void upgradeSpeed(Type t, int change);
-
+    static void resetUpgrades();
 public slots:
     void testing(){setCoolDown(false);}
 private:
@@ -82,16 +85,16 @@ private:
 
     class TowerStats{
     public:
-        TowerStats(int a, int b,int c, int d){speed=a;strength=b;range=c;cost=d;}
-        int speed;
-        int strength;
-        int range;
-        int cost;
+        TowerStats():d_count(0), r_count(0), s_count(0){}
+        int d_count, r_count, s_count;
     };
 
     static TowerStats fire;
     static TowerStats ice;
     static TowerStats earth;
+    static int fireCount;
+    static int iceCount;
+    static int earthCount;
 };
 
 #endif // TOWER_H

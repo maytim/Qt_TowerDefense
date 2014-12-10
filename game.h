@@ -37,7 +37,7 @@
 #include <random>
 
 namespace TOOLTIP{
-    const QString BASE = "C:/Qt/Projects/GameProject/tooltip_base.png";
+    const QString BASE = "C:/Qt/Projects/GameProject/tooltip_base3.png";
 }
 
 //Enum for all of the different game states
@@ -128,7 +128,7 @@ private:
     int score_value;
 
     //The QTimer identifier
-    int timerId;
+    int paintTimer;
     int spawnTimer;
 
     //Count for spawnTimer
@@ -189,7 +189,7 @@ private:
     public:
         ToolTip(Image* c, Image* c_a, Image* s, Image* s_u);
         ~ToolTip();
-        void moveTo(double x, double y);
+        void moveTo(QPointF position);
         void paint(QPainter* p);
     private:
         Image* cost;

@@ -28,12 +28,18 @@
 
 //Create a tower with default stats for it's damage and range. Move it to the tile that it was created over
 Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(false){
-    if(fileName == TOWER::TOWER_FIRE)
+    if(fileName == TOWER::TOWER_FIRE){
         type = FIRE;
-    else if(fileName == TOWER::TOWER_ICE)
+        fireCount++;
+    }
+    else if(fileName == TOWER::TOWER_ICE){
         type = ICE;
-    else if(fileName == TOWER::TOWER_EARTH)
+        iceCount++;
+    }
+    else if(fileName == TOWER::TOWER_EARTH){
         type = EARTH;
+        earthCount++;
+    }
 
     getRect()->moveTo(tile.topLeft());
 }
@@ -41,62 +47,99 @@ Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(fal
 Tower::~Tower(){
 }
 
-Tower::TowerStats Tower::fire = Tower::TowerStats(500,1,40,10);
-Tower::TowerStats Tower::ice = Tower::TowerStats(1000,3,40,10);
-Tower::TowerStats Tower::earth = Tower::TowerStats(3000,5,60,10);
+Tower::TowerStats Tower::fire = Tower::TowerStats();
+Tower::TowerStats Tower::ice = Tower::TowerStats();
+Tower::TowerStats Tower::earth = Tower::TowerStats();
+int Tower::fireCount = 0;
+int Tower::iceCount = 0;
+int Tower::earthCount = 0;
 
-int Tower::getDamage() const{
-    switch(type){
+void Tower::resetUpgrades(){
+    fireCount = 0;
+    iceCount = 0;
+    earthCount = 0;
+}
+
+int Tower::getDamage(Type t){
+    switch(t){
         case FIRE:
-            return fire.strength;
+            return (1+fire.d_count);
             break;
         case ICE:
-            return ice.strength;
+            return (3+ice.d_count);
             break;
         case EARTH:
-            return earth.strength;
+            return (5+earth.d_count);
             break;
     }
 }
 
-int Tower::getRange() const{
-    switch(type){
+int Tower::getRange(Type t){
+    switch(t){
         case FIRE:
-            return fire.range;
+            return (40+fire.r_count*10);
             break;
         case ICE:
-            return ice.range;
+            return (40+ice.r_count*10);
             break;
         case EARTH:
-            return earth.range;
+            return (60+earth.r_count*10);
             break;
     }
 }
 
-int Tower::getCoolDown() const{
-    switch(type){
+int Tower::getCoolDown(Type t){
+    switch(t){
         case FIRE:
-            return fire.speed;
+            return (500-fire.s_count*10);
             break;
         case ICE:
-            return ice.speed;
+            return (1000-ice.s_count*10);
             break;
         case EARTH:
-            return earth.speed;
+            return (2500-earth.s_count*10);
             break;
     }
 }
 
-int Tower::getCost() const{
-    switch(type){
+int Tower::getDamageCost(Type t){
+    switch(t){
         case FIRE:
-            return fire.cost;
+            return (25 + Tower::fireCount*5 + fire.d_count*10);
             break;
         case ICE:
-            return ice.cost;
+            return (25 + Tower::iceCount*5 + ice.d_count*10);
             break;
         case EARTH:
-            return earth.cost;
+            return (25 + Tower::earthCount*5 + earth.d_count*10);
+            break;
+    }
+}
+
+int Tower::getRangeCost(Type t){
+    switch(t){
+        case FIRE:
+            return (10 + Tower::fireCount*5 + fire.r_count*10);
+            break;
+        case ICE:
+            return (10 + Tower::iceCount*5 + ice.r_count*10);
+            break;
+        case EARTH:
+            return (10 + Tower::earthCount*5 + earth.r_count*10);
+            break;
+    }
+}
+
+int Tower::getRateCost(Type t){
+    switch(t){
+        case FIRE:
+            return (50 + Tower::fireCount*5 + fire.d_count*5);
+            break;
+        case ICE:
+            return (50 + Tower::iceCount*5 + ice.d_count*5);
+            break;
+        case EARTH:
+            return (50 + Tower::earthCount*5 + earth.d_count*5);
             break;
     }
 }
@@ -104,13 +147,13 @@ int Tower::getCost() const{
 void Tower::upgradeDamage(Type t, int change){
     switch(t){
         case FIRE:
-            fire.strength += change;
+            fire.d_count++;
             break;
         case ICE:
-            ice.strength += change;
+            ice.d_count++;
             break;
         case EARTH:
-            earth.strength += change;
+            earth.d_count++;
             break;
     }
 }
@@ -118,13 +161,13 @@ void Tower::upgradeDamage(Type t, int change){
 void Tower::upgradeRange(Type t, int change){
     switch(t){
         case FIRE:
-            fire.range += change;
+            fire.r_count++;
             break;
         case ICE:
-            ice.range += change;
+            ice.r_count++;
             break;
         case EARTH:
-            earth.range += change;
+            earth.r_count++;
             break;
     }
 }
@@ -132,55 +175,13 @@ void Tower::upgradeRange(Type t, int change){
 void Tower::upgradeSpeed(Type t, int change){
     switch(t){
         case FIRE:
-            fire.speed -= change;
+            fire.s_count++;
             break;
         case ICE:
-            ice.speed -= change;
+            ice.s_count++;
             break;
         case EARTH:
-            earth.speed -= change;
-            break;
-    }
-}
-
-int Tower::readDamage(Type t){
-    switch(t){
-        case FIRE:
-            return fire.strength;
-            break;
-        case ICE:
-            return ice.strength;
-            break;
-        case EARTH:
-            return earth.strength;
-            break;
-    }
-}
-
-int Tower::readRange(Type t){
-    switch(t){
-        case FIRE:
-            return fire.range;
-            break;
-        case ICE:
-            return ice.range;
-            break;
-        case EARTH:
-            return earth.range;
-            break;
-    }
-}
-
-int Tower::readRate(Type t){
-    switch(t){
-        case FIRE:
-            return fire.speed;
-            break;
-        case ICE:
-            return ice.speed;
-            break;
-        case EARTH:
-            return earth.speed;
+            earth.s_count++;
             break;
     }
 }
