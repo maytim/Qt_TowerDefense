@@ -1,48 +1,41 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
+
 #include "enemy.h"
-#include <QPainter>
-#include <QDebug>
 
 /*
     The Enemy constructor. That spawns the enemy at a given location
     @param QPointF p the spawn coordinates
 */
-Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
-     dead(false), score(10), spawnDelay(2000), faceRight(false)
+Enemy::Enemy(Enemy_Type type, QPointF p) : GameObject(), currentWaypoint(0),
+     dead(false), spawnDelay(2000), faceRight(false)
 {
-
-    //set animation Images
-    if(type == ENEMY::NORMAL){
+    //set unique variables depending on the enemy type
+    if(type == Enemy_Type::NORMAL){
         leftAnimation = new Image(ENEMY::NORMAL_L);
         rightAnimation = new Image(ENEMY::NORMAL_R);
         health = 3;
+        score = 10;
     }
-    else if(type == ENEMY::BADASS){
+    else if(type == Enemy_Type::BADASS){
         leftAnimation = new Image(ENEMY::BADASS_L);
         rightAnimation = new Image(ENEMY::BADASS_R);
         health = 10;
+        score = 15;
     }
 
     //set the animation image to be left by default
@@ -51,7 +44,6 @@ Enemy::Enemy(QString type, QPointF p) : GameObject(type), currentWaypoint(0),
 
     //move the enemy object to that 'spawn' site
     getRect()->translate(p.toPoint().rx()-getRect()->width()/2, p.toPoint().ry()-getRect()->height()/2);
-
 }
 
 Enemy::~Enemy(){
@@ -82,18 +74,29 @@ void Enemy::move(QPointF w){
     getRect()->translate(x, y);
 }
 
+/*
+    Helper Function for moving the enemy left that also changes the Enemy image.
+    @param int& x the variable that is used to update the enemy's position.
+*/
 void Enemy::moveLeft(int& x){
     x=-1;
     faceRight = false;
     setImage(*leftAnimation->getImage());
 }
 
+/*
+    Helper Function for moving the enemy right that also changes the Enemy image.
+    @param int& x the variable that is used to update the enemy's position.
+*/
 void Enemy::moveRight(int& x){
     x=1;
     faceRight = true;
     setImage(*rightAnimation->getImage());
 }
 
+/*
+    Animation getter that returns either the left or right image of the enemy
+*/
 Image Enemy::getAnimation() const{
     if(faceRight)
         return *rightAnimation;

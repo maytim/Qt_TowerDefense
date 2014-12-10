@@ -19,8 +19,7 @@ SOURCES += main.cpp\
     button.cpp \
     tower.cpp \
     wavegenerator.cpp \
-    image.cpp \
-    tooltip.cpp
+    image.cpp
 
 HEADERS  += game.h \
     gameobject.h \
@@ -30,5 +29,4 @@ HEADERS  += game.h \
     button.h \
     tile.h \
     tower.h \
-    wavegenerator.h \
-    tooltip.h
+    wavegenerator.h

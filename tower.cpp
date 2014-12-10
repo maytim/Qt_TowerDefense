@@ -1,33 +1,39 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
 #include "tower.h"
 
 #include <QRect>
 #include <QApplication>
 
-//Create a tower with default stats for it's damage and range. Move it to the tile that it was created over
+//Initialize all of the static members
+Tower::TowerStats Tower::fire = Tower::TowerStats();
+Tower::TowerStats Tower::ice = Tower::TowerStats();
+Tower::TowerStats Tower::earth = Tower::TowerStats();
+int Tower::fireCount = 0;
+int Tower::iceCount = 0;
+int Tower::earthCount = 0;
+
+/*
+    Constructor
+    @param fileName the file path to the tower image
+    @param tile the location to build the tower
+*/
 Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(false){
+    //Update the tower type counters
     if(fileName == TOWER::TOWER_FIRE){
         type = FIRE;
         fireCount++;
@@ -41,25 +47,21 @@ Tower::Tower(QString fileName, QRect tile) : GameObject(fileName) , coolDown(fal
         earthCount++;
     }
 
-    getRect()->moveTo(tile.topLeft());
+    getRect()->moveTo(tile.topLeft()); //Move the tower to the tile location
 }
 
-Tower::~Tower(){
-}
-
-Tower::TowerStats Tower::fire = Tower::TowerStats();
-Tower::TowerStats Tower::ice = Tower::TowerStats();
-Tower::TowerStats Tower::earth = Tower::TowerStats();
-int Tower::fireCount = 0;
-int Tower::iceCount = 0;
-int Tower::earthCount = 0;
-
+/*
+    Function to reset the tower type counts
+*/
 void Tower::resetUpgrades(){
     fireCount = 0;
     iceCount = 0;
     earthCount = 0;
 }
 
+/*
+    Tower type damage getter
+*/
 int Tower::getDamage(Type t){
     switch(t){
         case FIRE:
@@ -74,6 +76,9 @@ int Tower::getDamage(Type t){
     }
 }
 
+/*
+    Tower type range getter
+*/
 int Tower::getRange(Type t){
     switch(t){
         case FIRE:
@@ -88,6 +93,9 @@ int Tower::getRange(Type t){
     }
 }
 
+/*
+    Tower type cool down getter
+*/
 int Tower::getCoolDown(Type t){
     switch(t){
         case FIRE:
@@ -102,6 +110,26 @@ int Tower::getCoolDown(Type t){
     }
 }
 
+/*
+    Tower type cost getter
+*/
+int Tower::getCost(Type t){
+    switch(t){
+        case FIRE:
+            return (10 + Tower::fireCount*5);
+            break;
+        case ICE:
+            return (15 + Tower::iceCount*5);
+            break;
+        case EARTH:
+            return (20 + Tower::earthCount*5);
+            break;
+    }
+}
+
+/*
+    Tower type damage upgrade cost getter
+*/
 int Tower::getDamageCost(Type t){
     switch(t){
         case FIRE:
@@ -116,6 +144,9 @@ int Tower::getDamageCost(Type t){
     }
 }
 
+/*
+    Tower type range upgrade cost getter
+*/
 int Tower::getRangeCost(Type t){
     switch(t){
         case FIRE:
@@ -130,7 +161,10 @@ int Tower::getRangeCost(Type t){
     }
 }
 
-int Tower::getRateCost(Type t){
+/*
+    Tower type cool down upgrade cost getter
+*/
+int Tower::getCoolDownCost(Type t){
     switch(t){
         case FIRE:
             return (50 + Tower::fireCount*5 + fire.d_count*5);
@@ -144,7 +178,10 @@ int Tower::getRateCost(Type t){
     }
 }
 
-void Tower::upgradeDamage(Type t, int change){
+/*
+    Tower type damage upgrade function
+*/
+void Tower::upgradeDamage(Type t){
     switch(t){
         case FIRE:
             fire.d_count++;
@@ -158,7 +195,10 @@ void Tower::upgradeDamage(Type t, int change){
     }
 }
 
-void Tower::upgradeRange(Type t, int change){
+/*
+    Tower type range upgrade function
+*/
+void Tower::upgradeRange(Type t){
     switch(t){
         case FIRE:
             fire.r_count++;
@@ -172,7 +212,10 @@ void Tower::upgradeRange(Type t, int change){
     }
 }
 
-void Tower::upgradeSpeed(Type t, int change){
+/*
+    Tower type damage cool down function
+*/
+void Tower::upgradeCoolDown(Type t){
     switch(t){
         case FIRE:
             fire.s_count++;

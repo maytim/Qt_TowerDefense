@@ -1,32 +1,24 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
 #ifndef ENEMY_H
 #define ENEMY_H
 
 #include "gameobject.h"
 #include "image.h"
-#include <QDebug>
 
 /*
     @class Enemy
@@ -36,11 +28,10 @@
 */
 
 //Types of enemies
-namespace ENEMY {
-    //enemy constants
-    const QString NORMAL = "C:/Qt/Projects/GameProject/enemy.png";
-    const QString BADASS = "C:/Qt/Projects/GameProject/enemy2.png";
+enum class Enemy_Type{NORMAL, BADASS};
 
+//Enemy Media Locations
+namespace ENEMY {
     const QString NORMAL_L = "C:/Qt/Projects/GameProject/white ghost left.png";
     const QString NORMAL_R = "C:/Qt/Projects/GameProject/white ghost right.png";
     const QString BADASS_L = "C:/Qt/Projects/GameProject/red ghost left.png";
@@ -50,26 +41,43 @@ namespace ENEMY {
 class Enemy : public GameObject
 {
 public:
-    Enemy(QString type, QPointF p);
+    Enemy(Enemy_Type type, QPointF p);
     ~Enemy();
 
+    //Function to move the enemy towards the next waypoint
     void move(QPointF w);
 
     //Getter for the currentWaypoint
-    int getCurWaypoint() const { return currentWaypoint; }
+    inline int getCurWaypoint() const { return currentWaypoint; }
 
     //Function to increment the currentWaypoint
-    void incrementCurWaypoint() { currentWaypoint++; }
-    void inflictDamage(int d) { health -= d; }
-    bool isDead() const { return dead; }
-    int getHealth() const { return health; }
-    void setDead(bool b) { dead = b; }
-    int getScore() const { return score; }
-    int getSpawnDelay() const { return spawnDelay; }
+    inline void incrementCurWaypoint() { currentWaypoint++; }
+
+    //Function to damage the enemy
+    inline void inflictDamage(int d) { health -= d; }
+
+    //Function to check if the enemy is dead
+    inline bool isDead() const { return dead; }
+
+    //Health getter
+    inline int getHealth() const { return health; }
+
+    //Bool dead getter
+    inline void setDead(bool b) { dead = b; }
+
+    //Score getter
+    inline int getScore() const { return score; }
+
+    //SpawnDelay getter
+    inline int getSpawnDelay() const { return spawnDelay; }
+
+    //Animation getter
     Image getAnimation() const;
 private:
     //index of current or last waypoint that it has touched to use for navigating the waypoints
     int currentWaypoint;
+
+    //All of the enemy's stats
     int health;
     bool dead;
     int score;

@@ -1,25 +1,18 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
 #include "game.h"
 #include "waypoint.h"
@@ -32,13 +25,11 @@
 #include <QMouseEvent>
 #include <QTimer>
 
-#include <QDebug>
-
 /*
     Default constructor.
     @brief It sets up all of the game GUI components and starts the game in the MENU state.
 */
-Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), wave_value(0), score_value(10) ,
+Game::Game(QWidget *parent) : QWidget(parent) , state(MENU), helpIndex(0) , curTowerOpt(0), curTowerType(FIRE), wave_value(0), score_value(10) ,
     enemyCount(0), generator(SEED), damageDisplayOffset(-2,2), tooltip(NULL)
 {
     setWindowTitle("Elemental Defense");
@@ -65,15 +56,20 @@ Game::~Game()
     cleanHelp();
     cleanPause();
     cleanInGame();
-    for(auto& e : enemies)
-        delete e;
     cleanCharReferences();
 }
 
+/*
+    Function to delete all of the char references
+*/
 void Game::cleanCharReferences(){
     for(auto& c : letterChars)
         delete c;
     for(auto& c : letterCharsAct)
+        delete c;
+    for(auto& c : letterCharsRed)
+        delete c;
+    for(auto& c : specialChars)
         delete c;
 }
 
@@ -82,7 +78,7 @@ void Game::cleanCharReferences(){
     @brief for each paint event the game checks which state it's in and then draws the
     corresponding GUI components.
 */
-void Game::paintEvent(QPaintEvent *event){
+void Game::paintEvent(QPaintEvent*){
     QPainter painter(this);
 
     switch(state){
@@ -134,6 +130,7 @@ void Game::paintEvent(QPaintEvent *event){
                     break;
             }
 
+            //Draw the upgrade menu icons
             for(auto& i : upgrade_icon)
                 painter.drawImage(*i->getRect(), *i->getImage());
 
@@ -163,13 +160,14 @@ void Game::paintEvent(QPaintEvent *event){
                 tooltip->paint(&painter);
             break;
         case CLEARED:
+            //Draw the cleared wave message
             paintChar("wave "+std::to_string(getWave())+" cleared",0.25,painter,(width()-(13+std::to_string(getWave()).length())*20)/2,100,false);
+            //Paint the continue button
             if(continue_button->isActive())
                 painter.drawImage(*continue_button->getRect(), continue_button->getActiveImage());
             else
                 painter.drawImage(*continue_button->getRect(), *continue_button->getImage());
             break;
-
         case PAUSED:
             //For each of the buttons check to display active or passive image
             for(const auto b : pauseButtons){
@@ -209,30 +207,19 @@ void Game::timerEvent(QTimerEvent *event){
 }
 
 /*
- * generateEnemy
- * @brief A function to spawn a new enemy
+    Function to spawn the next enemy in the spawn list
 */
-void Game::generateEnemy(){
-    killTimer(spawnTimer);
-    if(enemyCount < 5){
-        enemies.push_back(new Enemy(ENEMY::NORMAL, navPath[0]));
-        enemyCount++;
-        spawnTimer = startTimer(2000);
-    }    
-}
-
 void Game::spawner(){
+    //Stop the current timer
+    killTimer(spawnTimer);
+
     //Then start spawning the new enemies
     if(!spawnList.empty()){
-        //Stop the current timer
-        killTimer(spawnTimer);
         //Spawn the next enemy
         enemies.push_back(spawnList.back());
         spawnTimer = startTimer(spawnList.back()->getSpawnDelay());
         spawnList.pop_back();
     }
-    else
-        killTimer(spawnTimer);
 }
 
 /*
@@ -267,24 +254,19 @@ void Game::keyPressEvent(QKeyEvent* event){
         switch(event->key()){
             //The 'P' key will activate the pause state
             case Qt::Key_P:
-                {
                     state = PAUSED;
                     break;
-                }
             //The 'ESC' key closes the program
             case Qt::Key_Escape:
-                {
                     qApp->exit();
                     break;
-                }
             default:
                 QWidget::keyPressEvent(event);
         }
     }
     //Otherwise ensure that the default keyPressEvent is called
-    else{
+    else
         QWidget::keyPressEvent(event);
-    }
 }
 
 /*
@@ -364,26 +346,39 @@ void Game::mouseMoveEvent(QMouseEvent *event){
             }
             break;
         case CLEARED:
+            //If hovering over continue's image make it active
             if(continue_button->getRect()->contains(event->pos()))
                 continue_button->setActive(true);
+            //Otherwise make it passive
             else
                 continue_button->setActive(false);
             break;
         case INGAME:
+            //Start by clearing the tooltip
             delete tooltip;
             tooltip = NULL;
 
-            Type curTowerType;
-            switch(curTowerOpt){
-                case 0:
-                    curTowerType = FIRE;
-                    break;
-                case 1:
-                    curTowerType = ICE;
-                    break;
-                case 2:
-                    curTowerType = EARTH;
-                    break;
+            //Then draw the correct tooltip based on the event->pos()
+
+            //TowerOption # 1
+            if(towerOptions[0]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getCost(FIRE)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
+            }
+
+            //TowerOption # 2
+            else if(towerOptions[1]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getCost(ICE)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
+            }
+
+            //TowerOption # 3
+            else if(towerOptions[2]->getRect()->contains(event->pos())){
+                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getCost(EARTH)), 1, ACTIVE));
+                tooltip->moveTo(event->pos());
             }
 
             //Upgrade #1
@@ -404,8 +399,8 @@ void Game::mouseMoveEvent(QMouseEvent *event){
             }
             //Upgrade #3
             else if(upgrade_icon[2]->getRect()->contains(event->pos())){
-                tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
-                                      mergeChars(std::to_string(Tower::getRateCost(curTowerType)), 1, ACTIVE),
+               tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
+                                      mergeChars(std::to_string(Tower::getCoolDownCost(curTowerType)), 1, ACTIVE),
                                       mergeChars("rate", 1, NORMAL),
                                       mergeChars(std::to_string(Tower::getCoolDown(curTowerType)), 1, ACTIVE));
                 tooltip->moveTo(event->pos());
@@ -423,7 +418,7 @@ void Game::mouseMoveEvent(QMouseEvent *event){
 */
 void Game::mousePressEvent(QMouseEvent *event){
     switch(state){
-        case MENU:{
+        case MENU:
             //Pressing the start button will start the game
             if(start_button->getRect()->contains(event->pos())){
                 //Start game
@@ -441,8 +436,7 @@ void Game::mousePressEvent(QMouseEvent *event){
                 qApp->quit();
             }
             break;
-        }
-        case PAUSED:{
+        case PAUSED:
             //Pressing resume will continue the current game
             if(pauseButtons[0]->getRect()->contains(event->pos())){
                 //Resume game
@@ -457,8 +451,7 @@ void Game::mousePressEvent(QMouseEvent *event){
                 state = MENU;
             }
             break;
-        }
-        case HELP:{
+        case HELP:
             //Pressing the left arrow will update the helpIndex so that it shows the image on the left
             if(arrows[0]->getRect()->contains(event->pos())){
                 if(helpIndex == 0)
@@ -482,7 +475,6 @@ void Game::mousePressEvent(QMouseEvent *event){
             }
             repaint();
             break;
-        }
     case INGAME:
         //Check if the event occurred on a non-path tile that is empty. If so then highlight that tile
         for(auto& t : map)
@@ -490,26 +482,29 @@ void Game::mousePressEvent(QMouseEvent *event){
 
         //Check if the click event occured on one of the tower builder options and if so update the selected tower type
         for(size_t i=0; i<towerOptions.size(); i++){
-            if(towerOptions[i]->getRect()->contains(event->pos()))
+            if(towerOptions[i]->getRect()->contains(event->pos())){
                 curTowerOpt = i;
+                //Also update the tower type variable
+                switch(curTowerOpt){
+                    case 0:
+                        curTowerType = FIRE;
+                        break;
+                    case 1:
+                        curTowerType = ICE;
+                        break;
+                    case 2:
+                        curTowerType = EARTH;
+                        break;
+                }
+            }
         }
-        Type curTowerType;
-        switch(curTowerOpt){
-            case 0:
-                curTowerType = FIRE;
-                break;
-            case 1:
-                curTowerType = ICE;
-                break;
-            case 2:
-                curTowerType = EARTH;
-                break;
-        }
+
+        //Update the correspond tooltip and tower stat based on click event pos
 
         //Upgrade #1
         if(getScore() > Tower::getDamageCost(curTowerType) && upgrade_icon[0]->getRect()->contains(event->pos())){
             updateScore(-Tower::getDamageCost(curTowerType));
-            Tower::upgradeDamage(curTowerType,1);
+            Tower::upgradeDamage(curTowerType);
             tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
                                   mergeChars(std::to_string(Tower::getDamageCost(curTowerType)), 1, ACTIVE),
                                   mergeChars("str", 1, NORMAL),
@@ -519,7 +514,7 @@ void Game::mousePressEvent(QMouseEvent *event){
         //Upgrade #2
         else if(getScore() > Tower::getRangeCost(curTowerType) && upgrade_icon[1]->getRect()->contains(event->pos())){
             updateScore(-Tower::getRangeCost(curTowerType));
-            Tower::upgradeRange(curTowerType, 1);
+            Tower::upgradeRange(curTowerType);
             tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
                                   mergeChars(std::to_string(Tower::getRangeCost(curTowerType)), 1, ACTIVE),
                                   mergeChars("range", 1, NORMAL),
@@ -527,11 +522,11 @@ void Game::mousePressEvent(QMouseEvent *event){
             tooltip->moveTo(event->pos());
         }
         //Upgrade #3
-        else if(getScore() > Tower::getRateCost(curTowerType) && upgrade_icon[2]->getRect()->contains(event->pos())){
-            updateScore(-Tower::getRateCost(curTowerType));
-            Tower::upgradeSpeed(curTowerType, 1);
+        else if(getScore() > Tower::getCoolDownCost(curTowerType) && upgrade_icon[2]->getRect()->contains(event->pos())){
+            updateScore(-Tower::getCoolDownCost(curTowerType));
+            Tower::upgradeCoolDown(curTowerType);
             tooltip = new ToolTip(mergeChars("cost", 1, NORMAL),
-                                  mergeChars(std::to_string(Tower::getRateCost(curTowerType)), 1, ACTIVE),
+                                  mergeChars(std::to_string(Tower::getCoolDownCost(curTowerType)), 1, ACTIVE),
                                   mergeChars("rate", 1, NORMAL),
                                   mergeChars(std::to_string(Tower::getCoolDown(curTowerType)), 1, ACTIVE));
             tooltip->moveTo(event->pos());
@@ -541,8 +536,7 @@ void Game::mousePressEvent(QMouseEvent *event){
     case CLEARED:
         //Pressing continue will start the next wave
         if(continue_button->getRect()->contains(event->pos())){
-            //Resume game
-            newWave();
+            newWave(); //start next wave
             state = INGAME;
         }
         break;
@@ -554,17 +548,20 @@ void Game::mousePressEvent(QMouseEvent *event){
     @brief A function to set up a new tower defense game
 */
 void Game::newGame(){
-    qDebug() << "New game";
     //Delete any existing data
     clearGame();
     //load new wave data
     wave_value = 0;
+    //Set up the wave
     newWave();
     score_value = 20;
     //start the timer used for spawning events
     paintTimer = startTimer(10);
 }
 
+/*
+    Function to start all of the timer loops
+*/
 void Game::startTimers(){
     //Start the timer that will update the enemies positions
     QTimer::singleShot(30,this,SLOT(moveEvent()));
@@ -574,6 +571,9 @@ void Game::startTimers(){
     QTimer::singleShot(30,this,SLOT(collisionEvent()));
 }
 
+/*
+    Function to create a new wave
+*/
 void Game::newWave(){
     //New wave
     updateWave();
@@ -589,11 +589,14 @@ void Game::newWave(){
     spawnList = wave_generator.generateSpawnList(getWave(), navPath[0]);
     enemyCount = spawnList.size();
 
+    //Start the timers
     spawnTimer = startTimer(2000);
     startTimers();
 }
 
-//A function to clear the existing game data
+/*
+ * Function to clear the existing game data
+ */
 void Game::clearGame(){
     for(auto& e : enemies)
         delete e;
@@ -609,16 +612,18 @@ void Game::clearGame(){
     Tower::resetUpgrades();
 }
 
-//A function to load the menu components
+/*
+ * Function to load the menu components
+*/
 void Game::loadMenu(){
     //load the corresponding images for each of the components
     title_line1 = mergeChars("tower",0.125,NORMAL);
     title_line2 = mergeChars("defense",0.125,NORMAL);
-
     start_button = new Button(mergeChars("start",0.25,NORMAL), mergeChars("start",0.25,ACTIVE));
     help_button = new Button(mergeChars("help",0.25,NORMAL), mergeChars("help",0.25,ACTIVE));
     quit_button = new Button(mergeChars("quit",0.25,NORMAL), mergeChars("quit",0.25,ACTIVE));
 
+    //cache the top_margin that depends on the contents of all the componenets
     int const top_margin = (height() - (title_line1->getRect()->height() + title_line2->getRect()->height() +
                            start_button->getRect()->height() + help_button->getRect()->height() +
                            quit_button->getRect()->height()))/2;
@@ -631,7 +636,9 @@ void Game::loadMenu(){
     quit_button->getRect()->moveTo( (width()-quit_button->getRect()->width())/2 , top_margin + title_line1->getRect()->height() + title_line2->getRect()->height() + start_button->getRect()->height() + help_button->getRect()->height());
 }
 
-//A function to delete the menu components
+/*
+ * Function to delete the menu components
+*/
 void Game::cleanMenu(){
     //Delete all of the Menu components
     delete title_line1;
@@ -641,12 +648,13 @@ void Game::cleanMenu(){
     delete quit_button;
 }
 
-//A function to load the ingame components
+/*
+ * A function to load the ingame components
+ */
 void Game::loadInGame(){
     //load the corresponding images for each of the components
     score_title = mergeChars("score",1,NORMAL);
     wave_title = mergeChars("wave",1,NORMAL);
-
     tileHighlight = new Image(CONSTANTS::HIGHLIGHT_TILE);
     towerOptions.push_back(new Image(CONSTANTS::TOWER_FIRE));
     towerOptions.push_back(new Image(CONSTANTS::TOWER_ICE));
@@ -663,6 +671,7 @@ void Game::loadInGame(){
     upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RANGE));
     upgrade_icon.push_back(new Image(CONSTANTS::UPGRADE_RATE));
 
+    //Cleared screen continue button
     continue_button = new Button(mergeChars("continue",0.25,NORMAL), mergeChars("continue",0.25,ACTIVE));
 
     //position the components
@@ -686,10 +695,14 @@ void Game::loadInGame(){
     //Cleared items
     continue_button->getRect()->moveTo( (width()-continue_button->getRect()->width())/2 , 264);
 
+    //Build the map and create the waypoint system
     buildMap();
     createNavigationPath();
 }
 
+/*
+    Function to load all of the chars from the file into the appropriate vectors.
+*/
 void Game::fillCharReferences(){
     letterChars.push_back(new Image(CHARS::CHAR_0));
     letterChars.push_back(new Image(CHARS::CHAR_1));
@@ -779,19 +792,28 @@ void Game::fillCharReferences(){
     specialChars.push_back(new Image(CHARS::CHAR_SPACE));
 }
 
-//A function to delete the ingame components
+/*
+ * A function to delete the ingame components
+ */
 void Game::cleanInGame(){
     //Delete all of the InGame components
     delete score_title;
     delete wave_title;
     delete tileHighlight;
+    delete tooltip;
     for(auto& t : map)
         delete t;
     for(auto& o : towerOptions)
         delete o;
+    for(auto& d : damageDisplays)
+        delete d;
+    for(auto& e : enemies)
+        delete e;
 }
 
-//A function to load the pause components
+/*
+ * A function to load the pause components
+ */
 void Game::loadPause(){
     //load the corresponding images for each of the components
     pauseButtons.push_back(new Button(mergeChars("resume",0.25,NORMAL), mergeChars("resume",0.25,ACTIVE)));
@@ -803,37 +825,38 @@ void Game::loadPause(){
     pauseButtons[1]->getRect()->moveTo( (width()-pauseButtons[1]->getRect()->width())/2 , top_margin+pauseButtons[0]->getRect()->height());
 }
 
-//A function to delete the pause components
+/*
+ * A function to delete the pause components
+ */
 void Game::cleanPause(){
     //Delete all of the Pause components
     for(auto& b : pauseButtons)
         delete b;
 }
 
-//A function to load the help components
+/*
+ * A function to load the help
+ */
 void Game::loadHelp(){
     //load the corresponding images for each of the components
     arrows.push_back(new Button(CONSTANTS::LEFT_PATH, CONSTANTS::LEFT_H_PATH, 0.25));
     arrows.push_back(new Button(CONSTANTS::RIGHT_PATH, CONSTANTS::RIGHT_H_PATH, 0.25));
     arrows.push_back(new Button(mergeChars("back",0.5,NORMAL), mergeChars("back",0.5,ACTIVE)));
-
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_1));
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_2));
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_3));
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_4));
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_5));
-    helpImages.push_back(new Image(CONSTANTS::HELP_IMAGE_6));
+    helpImages.push_back(new Image(CONSTANTS::HELP_SELECT_TOWER));
+    helpImages.push_back(new Image(CONSTANTS::HELP_UPGRADE));
+    helpImages.push_back(new Image(CONSTANTS::HELP_BUILD_TOWER));
 
     //position the components
     arrows[2]->getRect()->moveTo( 10, 10);
     arrows[0]->getRect()->moveTo( 30, (height()-arrows[0]->getRect()->height())/2);
     arrows[1]->getRect()->moveTo( width()-30-arrows[1]->getRect()->width(), (height()-arrows[1]->getRect()->height())/2);
-
     for(auto& i : helpImages)
         i->getRect()->moveTo((width()-i->getRect()->width())/2, (height()-i->getRect()->height())/2);
 }
 
-//A function to delete the help components
+/*
+ * A function to delete the help components
+ */
 void Game::cleanHelp(){
     //Delete all of the Help components
     for(auto& b : arrows)
@@ -842,7 +865,9 @@ void Game::cleanHelp(){
         delete i;
 }
 
-//A function to generate the tiles that will display the map
+/*
+ * A function to generate the tiles that will display the map
+ */
 void Game::buildMap(){
     //For each entry in the MAP array create a dirt tile if true and a grass tile if false
     for(const auto d : CONSTANTS::MAP)
@@ -867,7 +892,9 @@ void Game::buildMap(){
     }
 }
 
-//A function to handle the selection of a tile
+/*
+ * A function to handle the selection of a tile
+ */
 void Game::selectTile(Tile* t){
     //If the tile isn't already selected then select it by highlighting it
     if(!t->isActive()){
@@ -879,22 +906,22 @@ void Game::selectTile(Tile* t){
         t->setActive(false);
         switch(curTowerOpt){
             case 0:
-                if(getScore() >= CONSTANTS::TOWER_COST){
-                    updateScore(-CONSTANTS::TOWER_COST);
+                if(getScore() >= Tower::getCost(curTowerType)){
+                    updateScore(-Tower::getCost(curTowerType));
                     towers.push_back(new Tower(CONSTANTS::TOWER_FIRE, *t->getRect()));
                     t->setOccupied(true);
                 }
                 break;
             case 1:
-                if(getScore() >= CONSTANTS::TOWER_COST){
-                    updateScore(-CONSTANTS::TOWER_COST);
+                if(getScore() >= Tower::getCost(curTowerType)){
+                    updateScore(-Tower::getCost(curTowerType));
                     towers.push_back(new Tower(CONSTANTS::TOWER_ICE, *t->getRect()));
                     t->setOccupied(true);
                 }
                 break;
             case 2:
-                if(getScore() >= CONSTANTS::TOWER_COST){
-                    updateScore(-CONSTANTS::TOWER_COST);
+                if(getScore() >= Tower::getCost(curTowerType)){
+                    updateScore(-Tower::getCost(curTowerType));
                     towers.push_back(new Tower(CONSTANTS::TOWER_EARTH, *t->getRect()));
                     t->setOccupied(true);
                 }
@@ -903,7 +930,9 @@ void Game::selectTile(Tile* t){
     }
 }
 
-//A function to detect collisions between Tower and Enemy objects
+/*
+ * A function to detect collisions between Tower and Enemy objects
+ */
 void Game::raycast(){
     for(auto& t : towers){
         for(auto& e : enemies){
@@ -913,15 +942,17 @@ void Game::raycast(){
             if(distance < t->getRange(t->getType()) && !t->isCoolDown()){
                 //Cool down tower
                 t->setCoolDown(true);
-                QTimer::singleShot(t->getCoolDown(t->getType()),t,SLOT(testing()));
+                QTimer::singleShot(t->getCoolDown(t->getType()),t,SLOT(toggleCoolDown()));
                 //damage the enemy
                 e->inflictDamage(t->getDamage(t->getType()));
+                //Create the damage number obejct
                 Image* damage = mergeChars(std::to_string(t->getDamage(t->getType())),1,RED);
+                //reposition the damage number obejct
                 damage->getRect()->moveTo(e->getRect()->center().x()+damageDisplayOffset(generator), e->getRect()->top());
                 damageDisplays.push_back(damage);
+                //start lifetime timer for the damage number decal
                 QTimer::singleShot(1000,this,SLOT(removeDecal()));
 
-                qDebug() << "Health: " << e->getHealth();
                 //If the enemy's health is depleted then indicate that it is dead
                 if(e->getHealth() <= 0){
                     e->setDead(true);
@@ -937,7 +968,9 @@ void Game::raycast(){
     }
 }
 
-//A function to delete all dead Enemies in the game
+/*
+ * A function to delete all dead Enemies in the game
+ */
 void Game::cleanEnemyList(){
     for(size_t i = 0; i<enemies.size(); i++){
         if(enemies[i]->isDead()){
@@ -949,6 +982,9 @@ void Game::cleanEnemyList(){
     }
 }
 
+/*
+    Function to dynamically generate Text images that can be cached
+*/
 Image* Game::mergeChars(std::string word, double scale, Chars c){
     //Create an Image to append to
     Image* image = new Image();
@@ -1223,19 +1259,28 @@ Image* Game::mergeChars(std::string word, double scale, Chars c){
     return image;
 }
 
+/*
+    Helper function for mergeChars that appends each of the Images
+*/
 void Game::appendChar(Image* character, double scale, Image* i){
     Image* copy = character->scaledCopy(scale);
     i->append(copy);
 }
 
+/*
+    Helper function for paintChar that paints each of the images
+*/
 void Game::printChar(Image* character, double scale, QPainter& p, int& x, int& y){
     Image* copy = character->scaledCopy(scale);
     copy->getRect()->moveTo(x,y);
     p.drawImage(*copy->getRect(),*copy->getImage());
     x += copy->getRect()->width();
+    delete copy;
 }
 
-//A function to create the Images for the number displays
+/*
+    Function that can parse strings and paint the corresponding Text Images
+*/
 void Game::paintChar(std::string word, double scale, QPainter& p, int x, int y, bool active){
     //For each char in the string draw the appropriate Image
     //Also update the cordinates x,y so that the Images display corrrectly
@@ -1474,6 +1519,9 @@ void Game::paintChar(std::string word, double scale, QPainter& p, int x, int y, 
 
 }
 
+/*
+    Function that creates the waypoints from the map
+*/
 void Game::createNavigationPath(){
     for(auto& t : map){
         if(t->isPath())
@@ -1481,7 +1529,11 @@ void Game::createNavigationPath(){
     }
 }
 
-Game::ToolTip::ToolTip(Image* c, Image* c_a, Image* s, Image* s_u)
+/*
+    ToolTip constructor
+    @param s, s_u, c, c_a the images used in the tooltip
+*/
+Game::ToolTip::ToolTip(Image* s, Image* s_u, Image* c, Image* c_a) : upgrade(true)
 {
     cost = c;
     cost_amount = c_a;
@@ -1490,14 +1542,34 @@ Game::ToolTip::ToolTip(Image* c, Image* c_a, Image* s, Image* s_u)
     background = new Image(TOOLTIP::BASE);
 }
 
+/*
+    ToolTip constructor
+    @param c, c_a the images used in the tooltip
+*/
+Game::ToolTip::ToolTip(Image* c, Image* c_a) : upgrade(false)
+{
+    stat = c;
+    stat_upgrade = c_a;
+    background = new Image(TOOLTIP::BASE);
+}
+
+/*
+    ToolTip destructor
+*/
 Game::ToolTip::~ToolTip(){
-    delete cost;
-    delete cost_amount;
     delete background;
     delete stat;
     delete stat_upgrade;
+    if(upgrade){
+        delete cost;
+        delete cost_amount;
+    }
 }
 
+/*
+    Function to reposition all of the tooltip's components
+    @param position the mouse position that will be the top right corner of the tooltip
+*/
 void Game::ToolTip::moveTo(QPointF position){
     int x = position.x();
     int y = position.y();
@@ -1506,22 +1578,33 @@ void Game::ToolTip::moveTo(QPointF position){
     background->getRect()->moveTo(x-background->getRect()->width(), y);
     stat->getRect()->moveTo(background->getRect()->x()+2, background->getRect()->y()+2);
     stat_upgrade->getRect()->moveTo(stat->getRect()->right()+3, stat->getRect()->y());
-    cost->getRect()->moveTo(stat_upgrade->getRect()->right()+5, stat_upgrade->getRect()->y());
-    cost_amount->getRect()->moveTo(cost->getRect()->right()+3, cost->getRect()->y());
+    if(upgrade){
+        cost->getRect()->moveTo(stat_upgrade->getRect()->right()+5, stat_upgrade->getRect()->y());
+        cost_amount->getRect()->moveTo(cost->getRect()->right()+3, cost->getRect()->y());
+    }
 }
 
+/*
+    Function to paint the tooltip
+    @param p the painter object that the tooltip will be painted on
+*/
 void Game::ToolTip::paint(QPainter *p){
     p->drawImage(*background->getRect(), *background->getImage());
     p->drawImage(*stat->getRect(), *stat->getImage());
     p->drawImage(*stat_upgrade->getRect(), *stat_upgrade->getImage());
-    p->drawImage(*cost->getRect(), *cost->getImage());
-    p->drawImage(*cost_amount->getRect(), *cost_amount->getImage());
+    if(upgrade){
+        p->drawImage(*cost->getRect(), *cost->getImage());
+        p->drawImage(*cost_amount->getRect(), *cost_amount->getImage());
+    }
 }
 
+/*
+    Function to resize the tooltip's background for the content it holds
+*/
 void Game::ToolTip::resizeBackground(){
-    int width = 2 + stat->getRect()->width() + 3 + stat_upgrade->getRect()->width() + 5 +
-            cost->getRect()->width() + 3 + cost_amount->getRect()->width();
-    int height = cost->getRect()->height() + 4;
+    int width = 2 + stat->getRect()->width() + 3 + stat_upgrade->getRect()->width();
+    upgrade ? width += 5 + cost->getRect()->width() + 3 + cost_amount->getRect()->width() : width += 0;
+    int height = stat->getRect()->height() + 4;
     background->setImage(background->getImage()->scaled(width, height, Qt::IgnoreAspectRatio));
     background->setRect(background->getImage()->rect());
 }

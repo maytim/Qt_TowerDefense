@@ -1,17 +1,37 @@
+/*
+    @mainpage HW9
+    @author Tim Maytom (104016902)
+    @date 12/10/2014
+    @section DESCRIPTION
+
+    This is my last update for the Tower Defense Game.
+
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
+*/
 #include "wavegenerator.h"
 #include <random>
 #include <chrono>
 #include <cmath>
-#include <QDebug>
 
+/*
+    Function to empty the current spawn list
+*/
 void WaveGenerator::clearSpawnList(){
-    //Don't delete the objects because they will be passed over to the game
-    //enemy list
-    spawnList.clear();
+    spawnList.clear(); //Don't delete the objects because they will be passed over to the game enemy list
 }
 
+/*
+    Function to randomly generate a new spawn list
+    @param wave use current wave value to calculate how many enemies to spawn
+    @param spawnLocation the location to instantiate the new enemies
+*/
 std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLocation){
-    qDebug() << "spawning wave: " << wave;
     //Start by clearing spawnList
     clearSpawnList();
 
@@ -27,15 +47,13 @@ std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLoca
         switch( token ){
             case 0:
                 if(spawnTokens >= 1){
-                    qDebug() << "Normal Spawn";
-                    spawnList.push_back(new Enemy(ENEMY::NORMAL, spawnLocation));
+                    spawnList.push_back(new Enemy(Enemy_Type::NORMAL, spawnLocation));
                     spawnTokens -= 1;
                 }
                 break;
             case 1:
                 if(spawnTokens >= 3){
-                    qDebug() << "Badass Spawn";
-                    spawnList.push_back(new Enemy(ENEMY::BADASS, spawnLocation));
+                    spawnList.push_back(new Enemy(Enemy_Type::BADASS, spawnLocation));
                     spawnTokens -= 3;
                 }
                 break;

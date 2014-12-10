@@ -1,25 +1,18 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
@@ -35,22 +28,27 @@ namespace CONSTANTS{
     const int MARGIN_TOP = 64;
         
     //GUI constants
+
+    //Help Menu
     const QString RIGHT_PATH = "C:/Qt/Projects/GameProject/rightarrow.png";
     const QString RIGHT_H_PATH = "C:/Qt/Projects/GameProject/rightarrow_hover.png";
     const QString LEFT_PATH = "C:/Qt/Projects/GameProject/leftarrow.png";
     const QString LEFT_H_PATH = "C:/Qt/Projects/GameProject/leftarrow_hover.png";
-    const QString HELP_IMAGE_1 = "C:/Qt/Projects/GameProject/help1.png";
-    const QString HELP_IMAGE_2 = "C:/Qt/Projects/GameProject/help2.png";
-    const QString HELP_IMAGE_3 = "C:/Qt/Projects/GameProject/help3.png";
-    const QString HELP_IMAGE_4 = "C:/Qt/Projects/GameProject/help4.png";
-    const QString HELP_IMAGE_5 = "C:/Qt/Projects/GameProject/help5.png";
-    const QString HELP_IMAGE_6 = "C:/Qt/Projects/GameProject/help6.png";
-    const QString DIRT_TILE = "C:/Qt/Projects/GameProject/dirt_tile1.png";
-    const QString GRASS_TILE = "C:/Qt/Projects/GameProject/grass_tile1.png";
+    const QString HELP_SELECT_TOWER = "C:/Qt/Projects/GameProject/tower_select.png";
+    const QString HELP_UPGRADE = "C:/Qt/Projects/GameProject/upgrade_menu.png";
+    const QString HELP_BUILD_TOWER = "C:/Qt/Projects/GameProject/tower_builder.png";
+
+    //Map
+    const QString DIRT_TILE = "C:/Qt/Projects/GameProject/dirt_tile.png";
+    const QString GRASS_TILE = "C:/Qt/Projects/GameProject/grass_tile.png";
     const QString HIGHLIGHT_TILE = "C:/Qt/Projects/GameProject/tile_highlight.png";
+
+    //Tower
     const QString TOWER_FIRE = "C:/Qt/Projects/GameProject/fire.png";
     const QString TOWER_ICE = "C:/Qt/Projects/GameProject/ice.png";
     const QString TOWER_EARTH = "C:/Qt/Projects/GameProject/rock.png";
+
+    //Ingame GUI
     const QString TOWEROPT_H = "C:/Qt/Projects/GameProject/toweroption_h.png";
     const QString UPGRADE_FIRE_BASE = "C:/Qt/Projects/GameProject/fire_icon_base.png";
     const QString UPGRADE_ICE_BASE = "C:/Qt/Projects/GameProject/ice_icon_base.png";
@@ -58,6 +56,8 @@ namespace CONSTANTS{
     const QString UPGRADE_STRENGTH = "C:/Qt/Projects/GameProject/strength_icon.png";
     const QString UPGRADE_RANGE = "C:/Qt/Projects/GameProject/target_icon.png";
     const QString UPGRADE_RATE = "C:/Qt/Projects/GameProject/time_icon.png";
+
+
 
     //map constants
     const int TILE_ROW = 8;
@@ -177,13 +177,15 @@ public:
     GameObject(QString, qreal=1);
     virtual ~GameObject();
 
-    //rect and image getter functions
-    QRect* getRect(){ return rect; }
-    QImage* getImage() { return image; }
-    QRect getRectV() const { return *rect; }
-    QImage getImageV() const { return *image; }
-    void setImage(QImage i) { image = new QImage(i); }
-    void setRect(QRect r) { rect = new QRect(r); }
+    //rect and image getters
+    inline QRect* getRect(){ return rect; }
+    inline QImage* getImage() { return image; }
+    inline QRect getRectV() const { return *rect; }
+    inline QImage getImageV() const { return *image; }
+
+    //rect and image setters
+    inline void setImage(QImage i) { image = new QImage(i); }
+    inline void setRect(QRect r) { rect = new QRect(r); }
 private:
     //properties
     QImage* image;

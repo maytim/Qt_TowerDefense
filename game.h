@@ -1,25 +1,18 @@
 /*
-    @mainpage HW6
+    @mainpage HW9
     @author Tim Maytom (104016902)
-    @date 11/14/2014
+    @date 12/10/2014
     @section DESCRIPTION
 
-    This is an update of my previous assignment. I have worked on adding game logic to the GUI
-    that I had already constructed. The game draws a game map from array data. The enemies navigation
-    coordinates have been manually updated to follow the new path. I have added an ingame GUI. This
-    GUI includes the wave and score displays at the top of the screen. The number images for these displays
-    are drawn from a parsed string with Images that I have created. I have also added a toggle menu on the right
-    to select the tower type that you want to build. The towers target enemies by drawing QLine's to the enemy
-    and then comparing the distance of that QLine to its range property. If the enemy is within range, the tower
-    will reduce its health. When an enemy's health reaches 0, the enemy will be deleted from the game and the score
-    will be updated by the appropriate value.
+    This is my last update for the Tower Defense Game.
 
-    Issues:
-    -no end game event
-    -only a single wave. Need to store wave data, and then create a system to load the waves
-    -no attacking animations
-    -building towers doesn't affect the player's score so the user can create as many towers as they like
-    -no tower upgrade system
+    Feature List:
+        -Dynamically generated Text Images
+        -Dynamically generated tile map
+        -Random enemy spawner
+        -Tower class upgrades
+        -Formula based costs and stats for towers
+        -Infinite waves with increasing difficulty
 */
 #ifndef GAME_H
 #define GAME_H
@@ -36,8 +29,9 @@
 #include <QTimer>
 #include <random>
 
+//Media file paths for ToolTip objects
 namespace TOOLTIP{
-    const QString BASE = "C:/Qt/Projects/GameProject/tooltip_base3.png";
+    const QString BASE = "C:/Qt/Projects/GameProject/tooltip_base.png";
 }
 
 //Enum for all of the different game states
@@ -59,37 +53,6 @@ public:
     //Constructor and destructor
     Game(QWidget *parent = 0);
     ~Game();
-
-    //Event functions
-    void paintEvent(QPaintEvent* event);
-    void timerEvent(QTimerEvent* event);
-    void keyPressEvent(QKeyEvent* event);
-    void mouseMoveEvent(QMouseEvent *);
-    void mousePressEvent(QMouseEvent *);
-
-    //Helper functions to control the game
-    void newGame();
-    void clearGame();
-    void loadWaypoints();
-    void generateEnemy();
-    void moveEnemies();
-    void buildMap();
-    void selectTile(Tile*);
-    void raycast();
-    void cleanEnemyList();
-    void createNavigationPath();
-
-    //Score and wave getters
-    int getWave() const { return wave_value; }
-    int getScore() const { return score_value; }
-
-    //Updates for wave and score
-    void updateWave(){ wave_value++; }
-    void updateScore(int v) { score_value += v; }
-
-    Image* mergeChars(std::string,double,Chars);
-
-    QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 public slots:
     void moveDecals(){for(auto& d : damageDisplays)d->getRect()->translate(0,-1); if(state==INGAME)QTimer::singleShot(150,this,SLOT(moveDecals()));}
     void removeDecal(){Image* front = damageDisplays.front(); damageDisplays.pop_front(); delete front;}
@@ -102,6 +65,8 @@ private:
     void loadHelp();
     void loadPause();
     void loadInGame();
+    void buildMap();
+    void createNavigationPath();
 
     //Functons to delete the game states' components
     void cleanCharReferences();
@@ -110,22 +75,43 @@ private:
     void cleanPause();
     void cleanInGame();
 
-    //A helper function to draw the scores using Images
-    void paintChar(std::string,double,QPainter&,int,int,bool);
-    void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
-    void appendChar(Image* character, double scale, Image* i);
+    //Event functions
+    void paintEvent(QPaintEvent* event);
+    void timerEvent(QTimerEvent* event);
+    void keyPressEvent(QKeyEvent* event);
+    void mouseMoveEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
 
-    //Spawning function
+    //Helper functions to control the game
+    void newGame();
+    void clearGame();
+    void selectTile(Tile*);
+    void raycast();
+    void moveEnemies();
+    void cleanEnemyList();
     void spawner();
-
     void newWave();
     void startTimers();
 
-    WaveGenerator wave_generator;
+    //Score and wave getters
+    inline int getWave() const { return wave_value; }
+    inline int getScore() const { return score_value; }
+
+    //Updates for wave and score
+    inline void updateWave(){ wave_value++; }
+    inline void updateScore(int v) { score_value += v; }
+
+    //A helper function to dyanically draw Images
+    void paintChar(std::string,double,QPainter&,int,int,bool);
+    void printChar(Image* character, double scale, QPainter& p, int& x, int& y);
+    void appendChar(Image* character, double scale, Image* i);
+    Image* mergeChars(std::string,double,Chars);
 
     //Game Properties
     int wave_value;
     int score_value;
+    State state;
+    QPointF navPath[CONSTANTS::PATH_TILE_COUNT];
 
     //The QTimer identifier
     int paintTimer;
@@ -134,8 +120,8 @@ private:
     //Count for spawnTimer
     int enemyCount;
 
-    //Current game state
-    State state;
+    //Object to create new waves
+   WaveGenerator wave_generator;
 
     //Containers for the waypoints and enemies
     std::vector<Enemy*> enemies;
@@ -143,9 +129,10 @@ private:
     std::vector<Tile*> map;
     std::vector<Tower*> towers;
 
+    //Random generator variables for the damage number objects
     DEFAULT generator;
     std::uniform_int_distribution<int> damageDisplayOffset;
-    std::deque<Image*> damageDisplays;
+    std::deque<Image*> damageDisplays; //Deque of the damage number objects
 
     //Menu components
     Image* title_line1;
@@ -165,6 +152,7 @@ private:
     std::vector<Image*> specialChars;
     std::vector<Image*> towerOptions;
     int curTowerOpt;
+    Type curTowerType;
     Image* towerOptHighlight;
     std::vector<Image*> fire_upgrade;
     std::vector<Image*> upgrade_icon;
@@ -181,24 +169,32 @@ private:
     //Index to navigate the help images
     int helpIndex;
 
-    class ToolTip;
-
+    class ToolTip; //forward declaration of the ToolTip nested class
+    //Tooltip obejcts for each set of menus
     ToolTip* tooltip;
 
+    /*
+        @class ToolTip
+        A nested class to create ToolTip objects to describe buttons
+    */
     class ToolTip{
     public:
-        ToolTip(Image* c, Image* c_a, Image* s, Image* s_u);
+        //Constructors
+        ToolTip(Image* s, Image* s_u, Image*, Image* c_a);
+        ToolTip(Image* c, Image* c_a);
         ~ToolTip();
-        void moveTo(QPointF position);
-        void paint(QPainter* p);
+
+        void moveTo(QPointF position); //Function to reposition the tooltip
+        void paint(QPainter* p); //Function to paint the tooltip
     private:
+        bool upgrade;
         Image* cost;
         Image* cost_amount;
         Image* background;
         Image* stat;
         Image* stat_upgrade;
 
-        void resizeBackground();
+        void resizeBackground(); //function to resize the background image for the contents
     };
 };
 
