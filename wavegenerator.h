@@ -27,6 +27,8 @@
 #define SEED (unsigned int)std::chrono::system_clock::now().time_since_epoch().count()
 
 /*
+ * @class WaveGenerator
+ * @description
     The wave generator is an object that the Game class will have a singe
     instance of. The Game class can request for a new wave of random enemies
     by passing its wave value and then the wave generator will return a

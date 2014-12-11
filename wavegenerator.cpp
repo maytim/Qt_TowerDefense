@@ -39,7 +39,7 @@ std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLoca
     int spawnTokens = std::ceil(wave * 0.2) * 10;
 
     //Generate an int distribution for each of the enemy types
-    std::uniform_int_distribution<int> unif(0,1);
+    std::uniform_int_distribution<int> unif(0,2);
 
     //randomly generate enemies
     do{
@@ -54,6 +54,12 @@ std::vector<Enemy*> WaveGenerator::generateSpawnList(int wave, QPointF spawnLoca
             case 1:
                 if(spawnTokens >= 3){
                     spawnList.push_back(new Enemy(Enemy_Type::BADASS, spawnLocation));
+                    spawnTokens -= 3;
+                }
+                break;
+            case 2:
+                if(spawnTokens >= 3){
+                    spawnList.push_back(new Enemy(Enemy_Type::BAT, spawnLocation));
                     spawnTokens -= 3;
                 }
                 break;

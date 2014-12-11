@@ -38,6 +38,10 @@ namespace TOWER{
 //Tower types
 enum Type{FIRE,ICE,EARTH};
 
+/*
+    @class Tower
+    @brief class for all tower functions and data
+*/
 class Tower : public GameObject
 {
     Q_OBJECT

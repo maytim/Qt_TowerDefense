@@ -57,6 +57,18 @@ void Tower::resetUpgrades(){
     fireCount = 0;
     iceCount = 0;
     earthCount = 0;
+
+    fire.d_count = 0;
+    fire.r_count = 0;
+    fire.s_count = 0;
+
+    ice.d_count = 0;
+    ice.r_count = 0;
+    ice.s_count = 0;
+
+    earth.d_count = 0;
+    earth.r_count = 0;
+    earth.s_count = 0;
 }
 
 /*

@@ -598,6 +598,9 @@ void Game::newWave(){
  * Function to clear the existing game data
  */
 void Game::clearGame(){
+    //Reset the upgrade stats
+    Tower::resetUpgrades();
+
     for(auto& e : enemies)
         delete e;
     enemies.clear();
@@ -608,8 +611,6 @@ void Game::clearGame(){
         t->setOccupied(false);
     }
     spawnList.clear();
-    //Reset the upgrade stats
-    Tower::resetUpgrades();
 }
 
 /*

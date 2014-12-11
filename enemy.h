@@ -28,7 +28,7 @@
 */
 
 //Types of enemies
-enum class Enemy_Type{NORMAL, BADASS};
+enum class Enemy_Type{NORMAL, BADASS, BAT};
 
 //Enemy Media Locations
 namespace ENEMY {
@@ -36,6 +36,8 @@ namespace ENEMY {
     const QString NORMAL_R = "C:/Qt/Projects/GameProject/white ghost right.png";
     const QString BADASS_L = "C:/Qt/Projects/GameProject/red ghost left.png";
     const QString BADASS_R = "C:/Qt/Projects/GameProject/red ghost right.png";
+    const QString BAT_L = "C:/Qt/Projects/GameProject/bat_l.png";
+    const QString BAT_R = "C:/Qt/Projects/GameProject/bat_r.png";
 }
 
 class Enemy : public GameObject

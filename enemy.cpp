@@ -37,6 +37,12 @@ Enemy::Enemy(Enemy_Type type, QPointF p) : GameObject(), currentWaypoint(0),
         health = 10;
         score = 15;
     }
+    else if(type == Enemy_Type::BAT){
+        leftAnimation = new Image(ENEMY::BAT_L);
+        rightAnimation = new Image(ENEMY::BAT_R);
+        health = 15;
+        score = 20;
+    }
 
     //set the animation image to be left by default
     setImage(*leftAnimation->getImage());
